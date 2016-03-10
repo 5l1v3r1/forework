@@ -6,8 +6,8 @@ form of a shell it is actually a whole framework for forensics analysis.
 
 # But why?
 
-I wrote Fresh as my project for the M.Sc. in Digital Investigations and Computer
-Forensics at UCD (University College Dublin).
+I started Fresh as my dissertation project for the M.Sc. in Digital Investigations
+and Computer Forensics at UCD (University College Dublin), in March 2016.
 
 # And who the hell are you?
 
