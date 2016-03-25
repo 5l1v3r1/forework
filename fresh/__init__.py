@@ -1,6 +1,10 @@
 import os
 import sys
 
-if sys.version_info < (3, 5):
-    print('Python 3.5+ is required, exiting.')
+from . import config
+
+
+if sys.version_info < config.REQUIRED_PYTHON_VERSION:
+    print('Python {}.{}+ is required, exiting.'.format(
+        *config.REQUIRED_PYTHON_VERSION))
     sys.exit(os.EX_SOFTWARE)

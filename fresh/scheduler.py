@@ -1,20 +1,87 @@
-import multiprocessing
+import asyncio
+import threading
 
-from . import task_queue
+import ipyparallel as parallel
+
+from . import task_queue, utils
 
 _scheduler = None
 
-class Scheduler:
+logger = utils.get_logger(__name__)
 
-    def __init__(self, max_parallel_tasks=multiprocessing.cpu_count()):
-        self.task_queue = task_queue.get()
-        self.max_parallel_tasks = max_parallel_tasks
+
+class Scheduler(threading.Thread):
+    '''
+    Task scheduler
+
+    This class implements the task scheduler for submitting and executing new
+    tasks
+    '''
+
+    def __init__(self):
+        self._task_queue = task_queue.get()
+        self._client = None
+        self._running = False
+        logger.debug('Initialized scheduler')
+        threading.Thread.__init__(self)
 
     def enqueue(self, task):
-        pass
+        logger.debug('Adding task: {t}'.format(t=task))
+        self._task_queue.put_nowait(task)
+
+    def enqueue_many(self, tasks):
+        logger.debug('Adding {n} tasks: {t}'.format(
+            n=len(tasks),
+            t=str(tasks)[:30],
+        ))
+        for task in tasks:
+            self._task_queue.put_nowait(task)
+
+    def _connect(self):
+        '''
+        Connect to the IPyParallel cluster
+        '''
+        logger.info('Connecting to the ipyparallel cluster')
+        self._client = parallel.Client()
 
     def run(self):
-        pass
+        logger.info('Starting task scheduler')
+        self._connect()
+        self._running = True
+        lview = self._client.load_balanced_view()
+        pending = set()
+        while self._running:
+            # wait for completed tasks from the client
+            try:
+                self._client.wait(pending, 1e-3)
+            except parallel.TimeoutError:
+                pass
+
+            # update finished and pending task sets
+            finished = pending.difference(self._client.outstanding)
+            pending = pending.difference(finished)
+
+            # add new tasks from the queue
+            new_tasks = []
+            while True:
+                try:
+                    new_tasks.append(self._task_queue.get_nowait())
+                except asyncio.QueueEmpty:
+                    break
+            amr = lview.map(lambda t: t.start(), new_tasks)
+            if amr:
+                pending = pending.union(set(amr.msg_ids))
+
+            # do something with the completed tasks
+            for msg_id in finished:
+                for result in self._client.get_result(msg_id).get():
+                    logger.info('Result: {r!r}'.format(r=result))
+
+    def stop(self):
+        self._running = False
+
+    def is_running(self):
+        return self.running is True
 
 
 def get():

@@ -1,12 +1,13 @@
-import os
 import sys
+import time
 import argparse
 
 from . import scheduler
+from . import utils
+from .tasks.fibonacci import Fibonacci
 
-if sys.version_info < (3, 5):
-    print('Python 3.5+ is required')
-    sys.exit(os.EX_SOFTWARE)
+
+logger = utils.get_logger(__name__)
 
 
 def parse_args(args=None):
@@ -18,7 +19,15 @@ def parse_args(args=None):
 
 def main():
     sched = scheduler.get()
-    print(sched)
+    tasks = [Fibonacci(n) for n in range(100)]
+    logger.info('Created scheduler: {s}'.format(s=sched))
+    sched.enqueue_many(tasks)
+    sched.start()
+    TIMEOUT = 10
+    logger.debug('Scheduler will run for {t} seconds'.format(t=TIMEOUT))
+    time.sleep(TIMEOUT)
+    logger.info('Stopping scheduler after {t} seconds'.format(t=TIMEOUT))
+    sched.stop()
 
 
 main()
