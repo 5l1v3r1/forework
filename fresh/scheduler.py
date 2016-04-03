@@ -26,10 +26,20 @@ class Scheduler(threading.Thread):
         threading.Thread.__init__(self)
 
     def enqueue(self, task):
+        '''
+        Add a new task to the queue and start processing it.
+
+        A task must be a subclass of `fresh.task.Task`.
+        '''
         logger.debug('Adding task: {t}'.format(t=task))
         self._task_queue.put_nowait(task)
 
     def enqueue_many(self, tasks):
+        '''
+        Add multiple tasks to the task queue, and start processing them.
+
+        `tasks` is an iterable of Task subclasses.
+        '''
         logger.debug('Adding {n} tasks: {t}'.format(
             n=len(tasks),
             t=str(tasks)[:30],

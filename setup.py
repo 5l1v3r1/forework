@@ -1,10 +1,12 @@
 import sys
-
 from distutils.core import setup
 
+import fresh
 
-if sys.version_info[:2] < (3, 5):
-    raise SystemExit('At least Python 3.5 is required')
+if sys.version_info[:2] < fresh.config.REQUIRED_PYTHON_VERSION:
+    raise SystemExit('At least Python {} is required'.format(
+        '.'.join(fresh.config.REQUIRED_PYTHON_VERSION),
+    ))
 
 
 setup(

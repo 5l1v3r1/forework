@@ -1,12 +1,11 @@
-from ..task import Task
+from ..task import Task, TaskRunningException
 
 
 class Fibonacci(Task):
 
-    def __init__(self, n):
+    def __init__(self, n, *args, **kwargs):
         self._n = n
-        self._result = None
-        self._done = False
+        Task.__init__(self, *args, **kwargs)
 
     def run(self):
         n = self._n
@@ -14,14 +13,12 @@ class Fibonacci(Task):
         for i in range(n):
             a, b = b, a + b
         self._result = a
-
-    def get_result(self):
-        return self._result
+        self.done(True)
 
     def __repr__(self):
-        return '<{c}(n={n!r}, result={r!r})>'.format(
-            c=self.__class__.__name__,
+        return '<{cls}(n={n!r}, result={r!r})>'.format(
+            cls=self.__class__.__name__,
             n=self._n,
-            r=self._result if self._done else 'unfinished',
+            r=self._result if self._done else '<unfinished>',
         )
 
