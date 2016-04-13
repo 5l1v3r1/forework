@@ -1,4 +1,4 @@
-from ..task import Task, TaskRunningException
+from ..task import Task
 
 
 class Fibonacci(Task):
@@ -13,12 +13,11 @@ class Fibonacci(Task):
         for i in range(n):
             a, b = b, a + b
         self._result = a
-        self.done(True)
+        self.done = True
 
     def __repr__(self):
         return '<{cls}(n={n!r}, result={r!r})>'.format(
             cls=self.__class__.__name__,
             n=self._n,
-            r=self._result if self._done else '<unfinished>',
+            r=self._result if self.done else '<unfinished>',
         )
-
