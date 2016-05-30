@@ -13,7 +13,7 @@ logger = utils.get_logger(__name__)
 def parse_args(args=None):
     if args is None:
         args = sys.argv
-    parser = argparse.ArgumentParser(name='fresh')
+    parser = argparse.ArgumentParser(name='forework')
     return parser.parse_args(args)
 
 

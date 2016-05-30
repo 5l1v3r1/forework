@@ -1,14 +1,14 @@
 # What is it?
 
-FRESH is a bad name for what is actually a FoREnsics SHell. Yes, I know, I
-couldn't come up with something better and I'm sorry. And even if it comes in
-form of a shell it is actually a whole framework for forensics analysis.
+ForeWork as the name suggests is a Forensic Framework, whose main goal is to
+help investigators to find relevant forensic evidence in the most efficient way
+possible, depending on the computing resources at their disposal.
 
 You can have a look at the early design at the [project draft](documentation/project_draft.pdf).
 
 # But why?
 
-I started Fresh as my dissertation project for the M.Sc. in Digital Investigations
+I started ForeWork as my dissertation project for the M.Sc. in Digital Investigations
 and Computer Forensics at UCD (University College Dublin), in March 2016.
 
 # And who the hell are you?

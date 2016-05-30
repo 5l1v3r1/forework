@@ -29,7 +29,7 @@ class Scheduler(threading.Thread):
         '''
         Add a new task to the queue and start processing it.
 
-        A task must be a subclass of `fresh.task.Task`.
+        A task must be a subclass of `forework.task.Task`.
         '''
         logger.debug('Adding task: {t}'.format(t=task))
         self._task_queue.put_nowait(task)
