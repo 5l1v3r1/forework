@@ -55,9 +55,15 @@ class Scheduler(threading.Thread):
         self._client = parallel.Client()
 
     def run(self):
-        logger.info('Starting task scheduler')
-        self._connect()
         self._running = True
+        logger.info('Starting task scheduler')
+
+        # search for available task handlers
+        self._tasks = utils.find_tasks()
+
+        # connect to the ipcluster instance
+        self._connect()
+
         lview = self._client.load_balanced_view()
         pending = set()
         while self._running:
@@ -71,13 +77,15 @@ class Scheduler(threading.Thread):
             finished = pending.difference(self._client.outstanding)
             pending = pending.difference(finished)
 
-            # add new tasks from the queue
+            # retrieve and start new tasks from the queue
             new_tasks = []
             while True:
                 try:
                     new_tasks.append(self._task_queue.get_nowait())
                 except asyncio.QueueEmpty:
                     break
+
+            # add pending tasks to the pending task set used early in this loop
             amr = lview.map(lambda t: t.start(), new_tasks)
             if amr:
                 pending = pending.union(set(amr.msg_ids))
