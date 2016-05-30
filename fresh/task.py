@@ -38,16 +38,18 @@ class Task:
                      args, kwargs)
         return self._on_new_task_callback(*args, **kwargs)
 
-    def done(self, value=None):
-        if value not in (True, False, None):
+    @property
+    def done(self):
+        return self._done
+
+    @done.setter
+    def done(self, value):
+        if type(value) != bool:
             raise Exception(
-                'Value for {cls}.done() must be either True, False or None'
+                'Value for {cls}.done must be a boolean'
                 .format(cls=self.__class__.__name__),
             )
-        if value in (True, False):
-            self._done = value
-        else:
-            return self._done
+        self._done = value
 
     def start(self):
         self._done = False
