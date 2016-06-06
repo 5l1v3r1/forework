@@ -4,7 +4,7 @@ ForeWork as the name suggests is a Forensic Framework, whose main goal is to
 help investigators to find relevant forensic evidence in the most efficient way
 possible, depending on the computing resources at their disposal.
 
-You can have a look at the early design at the [project draft](documentation/project_draft.pdf).
+You can have a look at the early design at the [project draft](documentation/project_draft.pdf) and at the [literature review presentation](documentation/M1 - Literature review.pdf).
 
 # But why?
 
