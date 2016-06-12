@@ -3,7 +3,7 @@ import threading
 
 import ipyparallel as parallel
 
-from . import task_queue, utils
+from . import task_queue, utils, basetask
 
 _scheduler = None
 
@@ -29,7 +29,7 @@ class Scheduler(threading.Thread):
         '''
         Add a new task to the queue and start processing it.
 
-        A task must be a subclass of `forework.task.Task`.
+        A task must be a subclass of `forework.basetask.BaseTask`.
         '''
         logger.debug('Adding task: {t}'.format(t=task))
         self._task_queue.put_nowait(task)
@@ -38,7 +38,7 @@ class Scheduler(threading.Thread):
         '''
         Add multiple tasks to the task queue, and start processing them.
 
-        `tasks` is an iterable of Task subclasses.
+        `tasks` is an iterable of BaseTask subclasses.
         '''
         logger.debug('Adding {n} tasks: {t}'.format(
             n=len(tasks),
@@ -59,7 +59,7 @@ class Scheduler(threading.Thread):
         logger.info('Starting task scheduler')
 
         # search for available task handlers
-        self._tasks = utils.find_tasks()
+        self._tasks = basetask.find_tasks()
 
         # connect to the ipcluster instance
         self._connect()

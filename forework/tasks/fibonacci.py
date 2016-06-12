@@ -1,11 +1,11 @@
-from ..task import Task
+from ..basetask import BaseTask
 
 
-class Fibonacci(Task):
+class Fibonacci(BaseTask):
 
     def __init__(self, n, *args, **kwargs):
         self._n = n
-        Task.__init__(self, *args, **kwargs)
+        BaseTask.__init__(self, *args, **kwargs)
 
     def run(self):
         n = self._n

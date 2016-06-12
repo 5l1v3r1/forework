@@ -1,4 +1,4 @@
-from ..task import Task, TaskRunningException
+from ..basetask import BaseTask
 
 import magic
 
@@ -7,11 +7,11 @@ Generic class to handle raw files and recognize them. It can be used as a
 starting point to analyze unknown artifacts. Requires python-libmagic .
 '''
 
-class Raw(Task):
+class Raw(BaseTask):
 
     def __init__(self, path, *args, **kwargs):
         self._path = path
-        Task.__init__(self, *args, **kwargs)
+        BaseTask.__init__(self, *args, **kwargs)
         # TODO set the callback when a new sub-task is generated
         raise NotImplementedError
         self.set_new_task_callback(None)

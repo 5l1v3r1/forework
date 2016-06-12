@@ -25,14 +25,3 @@ def get_logger(name):
     logger.addHandler(file_handler)
 
     return logger
-
-
-logger = get_logger(__name__)
-
-
-def find_tasks():
-    logger.info('Searching for tasks in %r', config.tasks_dir)
-    import importlib
-    modules = importlib.__import__('forework.tasks', fromlist='*')
-    tasks = [m for m in dir(modules) if not m.startswith('__')]
-    return tasks
