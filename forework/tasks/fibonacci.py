@@ -13,7 +13,6 @@ class Fibonacci(BaseTask):
         for i in range(n):
             a, b = b, a + b
         self._result = a
-        self.done = True
 
     def __repr__(self):
         return '<{cls}(n={n!r}, result={r!r})>'.format(

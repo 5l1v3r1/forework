@@ -40,6 +40,7 @@ class BaseTask:
     def __init__(self, priority=PRIO_NORMAL, new_task_callback=None):
         self._name = self.__class__.__name__
         self._done = False
+        self._result = None
         self._priority = priority
         self.set_new_task_callback(new_task_callback)
 
