@@ -2,6 +2,8 @@ import sys
 import time
 import argparse
 
+import IPython
+
 from . import scheduler
 from . import utils
 from .tasks.fibonacci import Fibonacci
@@ -45,10 +47,6 @@ def analyze_raw_file(filename):
 
 
 def main():
-    try:
-        analyze_raw_file(sys.argv[1])
-    except IndexError:
-        print('Usage: {} <file>'.format(sys.argv[0]))
-        sys.exit(1)
+    IPython.embed()
 
 main()

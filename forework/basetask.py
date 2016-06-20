@@ -133,7 +133,7 @@ class BaseTask:
         raise NotImplementedError(msg)
 
     def get_result(self):
-        if self.done():
+        if self.done:
             return self._result
         msg = 'Attempted to get results on a task that is still running'
         logger.warning(msg)
