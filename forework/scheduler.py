@@ -22,6 +22,7 @@ class Scheduler(threading.Thread):
         self._task_queue = task_queue.get()
         self._client = None
         self._running = False
+        self._finished_tasks = []
         logger.debug('Initialized scheduler')
         threading.Thread.__init__(self)
 
@@ -93,6 +94,7 @@ class Scheduler(threading.Thread):
             # do something with the completed tasks
             for msg_id in finished:
                 for result in self._client.get_result(msg_id).get():
+                    self._finished_tasks.append(result)
                     logger.info('Result: {r!r}'.format(r=result))
 
     def stop(self):
