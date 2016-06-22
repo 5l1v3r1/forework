@@ -70,7 +70,7 @@ class Scheduler(threading.Thread):
         while self._running:
             # wait for completed tasks from the client
             try:
-                self._client.wait(pending, 1e-3)
+                self._client.wait(pending, 1e-2)
             except parallel.TimeoutError:
                 pass
 
@@ -99,6 +99,8 @@ class Scheduler(threading.Thread):
 
     def stop(self):
         self._running = False
+        del self._client
+        self.join()
 
     def is_running(self):
         return self.running is True

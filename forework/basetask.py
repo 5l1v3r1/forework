@@ -1,3 +1,4 @@
+import re
 import json
 
 from . import (utils, config)
@@ -35,13 +36,14 @@ def find_tasks(name=None):
 
 class BaseTask:
 
-    mime_types = []
+    MAGIC_PATTERN = None
 
     def __init__(self, priority=PRIO_NORMAL, new_task_callback=None):
         self._name = self.__class__.__name__
         self._done = False
         self._result = None
         self._priority = priority
+        self._rx = None
         self.set_new_task_callback(new_task_callback)
 
     def __repr__(self):
@@ -49,6 +51,13 @@ class BaseTask:
             cls=self.__class__.__name__,
             r=self._result if self._done else '<unfinished>',
         )
+
+    def handles(self, magic_string):
+        if self.MAGIC_PATTERN is None:
+            raise Exception('MAGIC_PATTERN must be defined by the task')
+        if self._rx is None:
+            self._rx = re.compile(self.MAGIC_PATTERN)
+        return self._rx.match(magic_string)
 
     def to_json(self):
         '''

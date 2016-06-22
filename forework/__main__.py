@@ -8,6 +8,7 @@ from . import scheduler
 from . import utils
 from .tasks.fibonacci import Fibonacci
 from .tasks.raw import Raw
+from .tasks.mbr import MBR
 
 
 logger = utils.get_logger(__name__)
