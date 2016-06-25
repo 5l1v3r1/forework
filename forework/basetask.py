@@ -9,8 +9,23 @@ PRIO_LOW = -10
 PRIO_NORMAL = 0
 PRIO_HIGH = 10
 
+_tasks_cache = None
 
-def find_tasks(name=None):
+
+def find_tasks(name=None, rebuild_cache=False):
+    '''
+    Discover all the available tasks. If `name` is not None, it will search only
+    tasks matching that name. If `rebuild_cache` is True, it will invalidate and
+    rebuild the tasks cache even if task caching is enabled.
+    If task caching is not enabled (see forework.config.ENABLE_TASKS_CACHE), the
+    task list will be rebuilt at every call, which is very inefficient
+    '''
+    if config.ENABLE_TASKS_CACHE and not rebuild_cache:
+        if _tasks_cache is None:
+            logger.info('Tasks cache enabled but cache is empty. Performing '
+                        'task search')
+        else:
+            return _tasks_cache
     logger.info('Searching for tasks in %r', config.tasks_dir)
     import importlib
     modules = importlib.__import__('forework.tasks', fromlist='*')
@@ -34,17 +49,35 @@ def find_tasks(name=None):
     return tasks
 
 
+def find_tasks_by_filetype(filetype, first_only=True):
+    '''
+    Search for tasks that can handle a file type (described as a string), and
+    return their names as a list of strings. If `first_only` is True, only the
+    first task name is returned, as a string.
+    '''
+    logger.info('Searching for tasks that can handle %r', filetype)
+    all_tasks = find_tasks()
+    suitable_tasks = []
+    for task in all_tasks:
+        if task.can_handle(filetype):
+            if first_only:
+                return task.__name__
+            suitable_tasks.append(task.__name__)
+    return suitable_tasks
+
+
 class BaseTask:
 
     MAGIC_PATTERN = None
+    _rx = None
 
-    def __init__(self, priority=PRIO_NORMAL, new_task_callback=None):
+    def __init__(self, path, priority=PRIO_NORMAL):
         self._name = self.__class__.__name__
+        self._path = path
         self._done = False
         self._result = None
         self._priority = priority
-        self._rx = None
-        self.set_new_task_callback(new_task_callback)
+        self._next_tasks = []
 
     def __repr__(self):
         return '<{cls}(result={r!r})>'.format(
@@ -52,9 +85,11 @@ class BaseTask:
             r=self._result if self._done else '<unfinished>',
         )
 
-    def handles(self, magic_string):
+    @classmethod
+    def can_handle(self, magic_string):
         if self.MAGIC_PATTERN is None:
-            raise Exception('MAGIC_PATTERN must be defined by the task')
+            raise Exception('MAGIC_PATTERN must be defined by the task {name}'
+                            .format(name=self._name))
         if self._rx is None:
             self._rx = re.compile(self.MAGIC_PATTERN)
         return self._rx.match(magic_string)
@@ -79,9 +114,12 @@ class BaseTask:
         '''
         return {
             'name': self._name,
+            'path': self._path,
             'completed': self._done,
             'priority': self._priority,
             'result': self.get_result(),
+            'next_tasks': self.get_next_tasks(),
+
         }
 
     @staticmethod
@@ -89,7 +127,7 @@ class BaseTask:
         '''
         Build a task from its JSON representation (see `to_json`)
         '''
-        return json.loads(taskjson)
+        return BaseTask.from_dict(json.loads(taskjson))
 
     @staticmethod
     def from_dict(taskdict):
@@ -97,22 +135,12 @@ class BaseTask:
         Build a task from its dict representation (see `to_dict`)
         '''
         cls = find_tasks(taskdict['name'])[0]
-        task = cls(*taskdict['args'], priority=taskdict['priority'])
-        task.done = taskdict['completed']
-        task._result = taskdict['result']
+        path = taskdict['path']
+        args = taskdict.get('args', [])
+        task = cls(path, *args, priority=taskdict.get('priority', PRIO_NORMAL))
+        task.done = taskdict.get('completed', False)
+        task._result = taskdict.get('result', None)
         return task
-
-    def set_new_task_callback(self, callback):
-        self._on_new_task_callback = callback
-
-    def call_new_task_callback(self, *args, **kwargs):
-        if self._on_new_task_callback is None:
-            logger.info('Got a new task but no user-defined method found')
-            return None
-        logger.debug('`on_new_task`(%r) called with args: %r | kwargs: %r',
-                     self._on_new_task_callback,
-                     args, kwargs)
-        return self._on_new_task_callback(*args, **kwargs)
 
     @property
     def done(self):
@@ -126,6 +154,19 @@ class BaseTask:
                 .format(cls=self.__class__.__name__),
             )
         self._done = value
+
+    def add_next_task(self, jsondata):
+        '''
+        Add a new follow-up task to the next_tasks list. The input is a valid
+        JSON representation of a task.
+        '''
+        self._next_tasks.append(jsondata)
+
+    def get_next_tasks(self):
+        '''
+        Return the list of tasks to do next. Every task is in JSON format.
+        '''
+        return [json.dumps(t) for t in self._next_tasks]
 
     def start(self):
         self._done = False

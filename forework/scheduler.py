@@ -48,6 +48,12 @@ class Scheduler(threading.Thread):
         for task in tasks:
             self._task_queue.put_nowait(task)
 
+    def enqueue_from_json(self, jsondata):
+        '''
+        Enqueue a task by creating it from a valid JSON description
+        '''
+        self.enqueue(BaseTask.from_json(jsondata))
+
     def _connect(self):
         '''
         Connect to the IPyParallel cluster
