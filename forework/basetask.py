@@ -20,6 +20,7 @@ def find_tasks(name=None, rebuild_cache=False):
     If task caching is not enabled (see forework.config.ENABLE_TASKS_CACHE), the
     task list will be rebuilt at every call, which is very inefficient
     '''
+    global _tasks_cache
     if config.ENABLE_TASKS_CACHE and not rebuild_cache:
         if _tasks_cache is None:
             logger.info('Tasks cache enabled but cache is empty. Performing '
@@ -46,7 +47,8 @@ def find_tasks(name=None, rebuild_cache=False):
     if name is not None:
         assert len(tasks) in (0, 1), ('Found more than one task named {t!r}'
                                       .format(t=name))
-    return tasks
+    _tasks_cache = tasks
+    return _tasks_cache
 
 
 def find_tasks_by_filetype(filetype, first_only=True):
