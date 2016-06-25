@@ -4,6 +4,7 @@ import threading
 import ipyparallel as parallel
 
 from . import task_queue, utils, basetask
+from .basetask import BaseTask
 
 _scheduler = None
 
@@ -101,6 +102,8 @@ class Scheduler(threading.Thread):
             for msg_id in finished:
                 for result in self._client.get_result(msg_id).get():
                     self._finished_tasks.append(result)
+                    for jsontask in result.get_next_tasks():
+                        self.enqueue_from_json(jsontask)
                     logger.info('Result: {r!r}'.format(r=result))
 
     def stop(self):
