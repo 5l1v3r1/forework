@@ -59,6 +59,12 @@ class MBR(BaseTask):
             fd.seek(self._offset)
             data = fd.read(struct.calcsize(MBR_FMT))
         mbr = MBRType(*struct.unpack(MBR_FMT, data))
+        if mbr.signature != bytes(b'\x55\xaa'):
+            self.add_warning(
+                'Bad MBR signature. Got: {got!r}, expected: {exp!r}'.format(
+                    got=mbr.signature,
+                    exp=0xaa55,
+                ))
         part_types = []
         for part_num in (1, 2, 3, 4):
             # FIXME handle extended partitions, type 0x5

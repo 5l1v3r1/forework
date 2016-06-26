@@ -181,7 +181,7 @@ class BaseTask:
         '''
         Add a warning message to the task's warnings
         '''
-        self.logger.warn(message)
+        logger.warn(message)
         self._warnings.append(message)
 
     def get_warnings(self):
