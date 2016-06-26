@@ -1,2 +1,3 @@
 filemagic
 pytest
+pytest-cov
