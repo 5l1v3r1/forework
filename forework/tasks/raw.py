@@ -12,9 +12,6 @@ class Raw(BaseTask):
     # This is a special task, and the MAGIC_PATTERN is actually ignored
     MAGIC_PATTERN = '.*'
 
-    def __init__(self, path, *args, **kwargs):
-        BaseTask.__init__(self, path, *args, **kwargs)
-
     def run(self):
         with magic.Magic() as mage:
             # Try to recognize the file content using libmagic
