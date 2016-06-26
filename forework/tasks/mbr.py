@@ -59,6 +59,7 @@ class MBR(BaseTask):
 
     def run(self):
         with open(self._path, 'rb') as fd:
+            fd.seek(self._offset)
             data = fd.read(struct.calcsize(MBR_FMT))
         mbr = MBRType(*struct.unpack(MBR_FMT, data))
         part_types = []

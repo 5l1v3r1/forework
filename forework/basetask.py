@@ -47,6 +47,7 @@ def find_tasks(name=None, rebuild_cache=False):
     if name is not None:
         assert len(tasks) in (0, 1), ('Found more than one task named {t!r}'
                                       .format(t=name))
+    logger.info('Tasks found: {t}'.format(t=tasks))
     _tasks_cache = tasks
     return _tasks_cache
 
