@@ -2,7 +2,7 @@
 
 PROJECT="dftt/Test%20Images"
 IMAGES='1_%20Extended%20Partition/1-extend-part.zip 11_%20Basic%20Data%20Carving%20%231/11-carve-fat.zip'
-OUTDIR="./test/images"
+OUTDIR="./tests/images"
 
 mkdir -p "$OUTDIR"
 for image in $IMAGES
