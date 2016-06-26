@@ -11,6 +11,21 @@ You can have a look at the early design at the [project draft](documentation/pro
 I started ForeWork as my dissertation project for the M.Sc. in Digital Investigations
 and Computer Forensics at UCD (University College Dublin), in March 2016.
 
+# Installation
+
+```bash
+python setup.py install
+```
+
+# Running tests
+
+Requires `pytest` and `pytest-cov`. Run:
+
+```bash
+py.test -v --cov=forework
+```
+
+
 # And who the hell are you?
 
 I am Andrea Barberio, you can find more information about me at
