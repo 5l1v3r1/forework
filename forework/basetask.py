@@ -39,6 +39,8 @@ def find_tasks(name=None, rebuild_cache=False):
         )
         classes = [o for o in dir(module) if o[:2] != '__']
         for classname in classes:
+            if classname == 'Raw':
+                continue  # we don't want to loop again into a Raw object
             if classname == name or name is None:
                 cls = getattr(module, classname)
                 if type(cls) == type and cls != BaseTask and \
