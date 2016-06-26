@@ -73,9 +73,10 @@ class BaseTask:
     MAGIC_PATTERN = None
     _rx = None
 
-    def __init__(self, path, priority=PRIO_NORMAL):
+    def __init__(self, path, offset=0, priority=PRIO_NORMAL):
         self._name = self.__class__.__name__
         self._path = path
+        self._offset = offset
         self._done = False
         self._result = None
         self._priority = priority
@@ -117,6 +118,7 @@ class BaseTask:
         return {
             'name': self._name,
             'path': self._path,
+            'offset': self._offset,
             'completed': self._done,
             'priority': self._priority,
             'result': self.get_result(),
@@ -138,6 +140,7 @@ class BaseTask:
         '''
         cls = find_tasks(taskdict['name'])[0]
         path = taskdict['path']
+        path = taskdict.get('offset', 0)
         args = taskdict.get('args', [])
         task = cls(path, *args, priority=taskdict.get('priority', PRIO_NORMAL))
         task.done = taskdict.get('completed', False)
