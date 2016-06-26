@@ -4,12 +4,12 @@ import json
 from forework.tasks.raw import Raw
 
 
-def test_init(images_dir):
-    Raw(os.path.join(images_dir, '1-extend-part/ext-part-test-2.dd'))
+def test_init(test_image_1):
+    Raw(test_image_1)
 
 
-def test_run(images_dir):
-    task = Raw(os.path.join(images_dir, '1-extend-part/ext-part-test-2.dd'))
+def test_run(test_image_1):
+    task = Raw(test_image_1)
     task.run()
     assert task.done is True
     assert task.get_result().startswith('DOS/MBR boot sector;')
