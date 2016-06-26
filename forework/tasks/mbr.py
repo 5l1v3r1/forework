@@ -1,7 +1,7 @@
 import struct
 from collections import namedtuple
 
-from ..basetask import BaseTask
+from ..basetask import BaseTask, find_tasks_by_filetype
 
 MBR_FMT = (
     '<'  # little-endian
@@ -54,9 +54,6 @@ class MBR(BaseTask):
 
     MAGIC_PATTERN = '^DOS/MBR boot sector;.+'
 
-    def __init__(self, path, *args, **kwargs):
-        BaseTask.__init__(self, path, *args, **kwargs)
-
     def run(self):
         with open(self._path, 'rb') as fd:
             fd.seek(self._offset)
@@ -64,14 +61,24 @@ class MBR(BaseTask):
         mbr = MBRType(*struct.unpack(MBR_FMT, data))
         part_types = []
         for part_num in (1, 2, 3, 4):
+            # FIXME handle extended partitions, type 0x5
+            # TODO handle other partition identification methods
             part_data = getattr(mbr, 'partition_{n}'.format(n=part_num))
             partition = MBRPartitionType(
                 *struct.unpack(MBR_PARTITION_FMT, part_data))
-            part_type = partition_types[partition.type]
+            part_type = partition_types[partition.type][0]
             part_types.append(part_type)
+
+            # tell the scheduler what to do with each partition found
+            next_task = find_tasks_by_filetype(part_type)
+            if next_task:
+                self.add_next_task({
+                    'name': next_task,
+                    'path': self._path,
+                    'offset': 446 + 16 * (part_num - 1)
+                })
         self._result = part_types
         self.done = True
-#        self.add_next_task(jsondata)
 
 
 # from
