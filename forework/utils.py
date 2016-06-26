@@ -9,7 +9,8 @@ def get_logger(name):
     logger.setLevel(logging.DEBUG)
 
     formatter = logging.Formatter(
-        '%(levelname)s|%(asctime)s|%(name)s|%(message)s',
+        '%(levelname)s|%(asctime)s|%(name)s|'
+        '%(filename)s:%(lineno)s in %(funcName)s|%(message)s',
         datefmt='%Y-%m-%dT%H:%M:%S%z'
     )
     formatter.converter = time.gmtime
