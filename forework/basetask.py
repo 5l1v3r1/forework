@@ -1,5 +1,6 @@
 import re
 import json
+import time
 
 from . import (utils, config)
 
@@ -76,11 +77,15 @@ class BaseTask:
     MAGIC_PATTERN = None
     _rx = None
 
-    def __init__(self, path, offset=0, priority=PRIO_NORMAL):
+    def __init__(self, path, offset=0, priority=PRIO_NORMAL,
+                 time_function=time.monotonic):
         self._name = self.__class__.__name__
         self._path = path
         self._offset = offset
         self._done = False
+        self._start = None
+        self._end = None
+        self._time_function = time_function
         self._result = None
         self._warnings = []
         self._priority = priority
@@ -124,6 +129,8 @@ class BaseTask:
             'path': self._path,
             'offset': self._offset,
             'completed': self._done,
+            'start': self._start,
+            'end': self._end,
             'priority': self._priority,
             'result': self.get_result(),
             'next_tasks': self.get_next_tasks(),
@@ -162,6 +169,10 @@ class BaseTask:
                 'Value for {cls}.done must be a boolean'
                 .format(cls=self.__class__.__name__),
             )
+        if value is False:
+            self._start = self._time_function()
+        else:
+            self._end = self._time_function()
         self._done = value
 
     def add_next_task(self, jsondata):
@@ -191,16 +202,26 @@ class BaseTask:
         return self._warnings
 
     def start(self):
-        self._done = False
+        self.done = False
+        logger.info('Task {tn} started at {ts}'.format(
+            tn=self.__class__.__name__,
+            ts=self._start,
+        ))
         self.run()
-        self._done = True
+        self.done = True
+        logger.info('Task {tn} ended at {ts}'.format(
+            tn=self.__class__.__name__,
+            ts=self._end,
+        ))
         return self
 
     def run(self):
         # NOTE: when overriding, remember to call self.done(True) to indicate
         #       that a task has completed and can yield a result
-        msg = ('Attempted to call virtual method `run`, this method must be '
-               'overridden')
+        msg = ('Attempted to call virtual method `run` on {myself}, this '
+               'method must be overridden'.format(
+                   myself=self.__class__.__name__)
+               )
         logger.warning(msg)
         raise NotImplementedError(msg)
 
