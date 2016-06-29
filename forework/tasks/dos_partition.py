@@ -9,3 +9,4 @@ class DOSPartition(BaseTask):
     def run(self):
         with open(self._path, 'rb') as fd:
             fd.seek(self._offset)
+        self._result = ''

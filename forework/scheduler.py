@@ -112,7 +112,12 @@ class Scheduler(threading.Thread):
         self.join()
 
     def is_running(self):
-        return self.running is True
+        return self._running is True
+
+    def wait(self):
+        if self._client:
+            self._client.wait()
+        self.stop()
 
 
 def get():

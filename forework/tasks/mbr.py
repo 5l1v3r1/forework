@@ -5,6 +5,7 @@ from ..basetask import BaseTask, find_tasks_by_filetype
 
 # TODO handle extended partitions
 # TODO handle cases where the sector size is not 512 but 4096
+# TODO use libmagic
 
 SECTOR_SIZE = 512
 
