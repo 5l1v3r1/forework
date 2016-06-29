@@ -3,6 +3,12 @@ from collections import namedtuple
 
 from ..basetask import BaseTask, find_tasks_by_filetype
 
+# TODO handle extended partitions
+# TODO handle cases where the sector size is not 512 but 4096
+
+SECTOR_SIZE = 512
+
+
 MBR_FMT = (
     '<'  # little-endian
     '446x'  # code
@@ -27,9 +33,9 @@ MBRType = namedtuple(
 MBR_PARTITION_FMT = (
     '<'  # little-endian
     'B'  # status
-    '3p'  # chs_first
+    '3s'  # chs_first
     'B'  # type
-    '3p'  # chs_last
+    '3s'  # chs_last
     'L'  # LBA
     'L'  # sectors
 )
@@ -47,12 +53,41 @@ MBRPartitionType = namedtuple(
 )
 
 
+def parse_chs(chs):
+    # http://thestarman.pcministry.com/asm/mbr/PartTables.htm
+    c = chs[2] + ((chs[1] & 0xc0) << 8)
+    s = chs[1] & 0x3f
+    h = chs[0]
+    return c, h, s
+
+
+def chs_to_lba(c, h, s, hpc=16, spt=63):
+    # https://en.wikipedia.org/wiki/Logical_block_addressing#CHS_conversion
+    # HPC stands for Heads Per Cylinder, default=16
+    # SPT stands for Sectors Per Track, default=63
+    return (c * hpc + h) * spt + (s - 1)
+
+
+def lba_to_chs(lba, hpc=16, spt=63):
+    # https://en.wikipedia.org/wiki/Logical_block_addressing#CHS_conversion
+    # HPC stands for Heads Per Cylinder, default=16
+    # SPT stands for Sectors Per Track, default=63
+    c = lba / (hpc * spt)
+    h = (lba / spt) % hpc
+    s = lba % spt + 1
+    return c, h, s
+
+
 class MBR(BaseTask):
     '''
     Task to handle MBR objects
     '''
 
     MAGIC_PATTERN = '^DOS/MBR boot sector;.+'
+
+    def __init__(self, path, use_libmagic=False, *args, **kwargs):
+        self._use_libmagic = use_libmagic
+        BaseTask.__init__(self, path, *args, **kwargs)
 
     def run(self):
         with open(self._path, 'rb') as fd:
@@ -68,20 +103,55 @@ class MBR(BaseTask):
         part_types = []
         for part_num in (1, 2, 3, 4):
             # FIXME handle extended partitions, type 0x5
-            # TODO handle other partition identification methods
             part_data = getattr(mbr, 'partition_{n}'.format(n=part_num))
             partition = MBRPartitionType(
                 *struct.unpack(MBR_PARTITION_FMT, part_data))
+            if partition.status not in (0x00, 0x80):
+                self.add_warning(
+                    'partition {n}: status is neither 0x00 nor 0x80: got {v}'
+                    .format(
+                        n=part_num,
+                        v=partition.status,
+                    )
+                )
+            c, h, s = parse_chs(partition.chs_first)
+            if s == 0:
+                self.add_warning('partition {n}: sector in CHS should not be 0'
+                                 .format(n=part_num))
+            if c == 0xff:
+                self.add_warning(
+                    'partition {n}: cylinder in CHS should not be 0xff'.format(
+                        n=part_num,
+                    )
+                )
             part_type = partition_types[partition.type][0]
             part_types.append(part_type)
+            if partition.chs_first == '\xff\xff\xfe':
+                use_lba = True
 
+            # if CHS == LBA, then we should use LBA, unless one of the
+            # exceptions below apply
+            chs_equivalent = chs_to_lba(c, h, s)
+            use_lba = chs_equivalent == partition.lba
+
+            # exceptions by partition type
+            if part_type in (0x06, 0x0b):  # CHS-mapped fat-16/32
+                use_lba = False
+                if partition.chs_first == '\xff\xff\xfe':
+                    self.add_warning(
+                        'partition {n}: CHS value set to 0xfe 0xff 0xff but '
+                        'the partition type requires CHS'.format(n=part_num))
+            elif part_type in (0x0e, 0x0c):  # LBA-mapped fat-16/32
+                use_lba = True
+
+            offset = partition.lba if use_lba else chs_equivalent
             # tell the scheduler what to do with each partition found
             next_task = find_tasks_by_filetype(part_type)
             if next_task:
                 self.add_next_task({
                     'name': next_task,
                     'path': self._path,
-                    'offset': 446 + 16 * (part_num - 1)
+                    'offset': offset,
                 })
         self._result = part_types
         self.done = True
