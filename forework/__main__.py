@@ -35,6 +35,7 @@ def analyze_raw_file(filename):
 
 
 def main():
+    sched = scheduler.get()
     IPython.embed()
 
 main()
