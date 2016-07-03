@@ -1,6 +1,6 @@
 import re
 import json
-import time
+import datetime
 
 from . import (utils, config)
 
@@ -78,14 +78,17 @@ class BaseTask:
     _rx = None
 
     def __init__(self, path, offset=0, priority=PRIO_NORMAL,
-                 time_function=time.monotonic):
+                 time_function=None):
         self._name = self.__class__.__name__
         self._path = path
         self._offset = offset
         self._done = False
         self._start = None
         self._end = None
-        self._time_function = time_function
+        if time_function is None:
+            self._time_function = self.now
+        else:
+            self._time_function = time_function
         self._result = None
         self._warnings = []
         self._priority = priority
@@ -96,6 +99,9 @@ class BaseTask:
             cls=self.__class__.__name__,
             r=self._result if self._done else '<unfinished>',
         )
+
+    def now(self):
+        return str(datetime.datetime.now())
 
     @classmethod
     def can_handle(self, magic_string):
