@@ -77,7 +77,7 @@ class Scheduler(threading.Thread):
         while self._running:
             # wait for completed tasks from the client
             try:
-                self._client.wait(pending, 1e-2)
+                self._client.wait(pending, 1e-1)
             except parallel.TimeoutError:
                 pass
 
@@ -105,19 +105,17 @@ class Scheduler(threading.Thread):
                     for jsontask in result.get_next_tasks():
                         self.enqueue_from_json(jsontask)
                     logger.info('Result: {r!r}'.format(r=result))
+        self._client.wait()
 
     def stop(self):
         self._running = False
-        del self._client
+        if self._client is not None:
+            self._client.wait()
+        self._client = None
         self.join()
 
     def is_running(self):
         return self._running is True
-
-    def wait(self):
-        if self._client:
-            self._client.wait()
-        self.stop()
 
 
 def get():
