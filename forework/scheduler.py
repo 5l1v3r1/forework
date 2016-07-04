@@ -105,7 +105,8 @@ class Scheduler(threading.Thread):
                     for jsontask in result.get_next_tasks():
                         self.enqueue_from_json(jsontask)
                     logger.info('Result: {r!r}'.format(r=result))
-        self._client.wait()
+        if self._client is not None:
+            self._client.wait()
 
     def stop(self):
         self._running = False

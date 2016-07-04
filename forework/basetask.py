@@ -162,7 +162,8 @@ class BaseTask:
         '''
         Build a task from its dict representation (see `to_dict`)
         '''
-        cls = find_tasks(taskdict['name'])[0]
+        task_name = taskdict['name'][0]
+        cls = find_tasks(task_name)[0]
         path = taskdict['path']
         path = taskdict.get('offset', 0)
         args = taskdict.get('args', [])
