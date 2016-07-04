@@ -10,7 +10,32 @@ PRIO_LOW = -10
 PRIO_NORMAL = 0
 PRIO_HIGH = 10
 
-_tasks_cache = None
+_tasks_cache = {}
+
+
+def _rebuild_cache():
+    global _tasks_cache
+    logger.info('Rebuilding tasks cache from %r', config.tasks_dir)
+    import importlib
+    modules = importlib.__import__('forework.tasks', fromlist='*')
+    tasks = {}
+    for modulename in dir(modules):
+        if modulename[:2] == '__':
+            continue
+        module = importlib.import_module(
+            'forework.tasks.{m}'.format(m=modulename),
+        )
+        classes = [o for o in dir(module) if o[:2] != '__']
+        for classname in classes:
+            # We don't want Raw in the task cache to avoid loops
+            if classname == 'Raw':
+                continue
+            cls = getattr(module, classname)
+            if type(cls) == type and cls != BaseTask and \
+                    issubclass(cls, BaseTask):
+                tasks[classname] = cls
+    _tasks_cache = tasks
+    logger.debug('Tasks cache rebuilt: {n} tasks found'.format(n=len(tasks)))
 
 
 def find_tasks(name=None, rebuild_cache=False):
@@ -27,32 +52,14 @@ def find_tasks(name=None, rebuild_cache=False):
             logger.info('Tasks cache enabled but cache is empty. Performing '
                         'task search')
         else:
-            return _tasks_cache
-    logger.info('Searching for tasks in %r', config.tasks_dir)
-    import importlib
-    modules = importlib.__import__('forework.tasks', fromlist='*')
-    tasks = []
-    for modulename in dir(modules):
-        if modulename[:2] == '__':
-            continue
-        module = importlib.import_module(
-            'forework.tasks.{m}'.format(m=modulename),
-        )
-        classes = [o for o in dir(module) if o[:2] != '__']
-        for classname in classes:
-            if classname == 'Raw':
-                continue  # we don't want to loop again into a Raw object
-            if classname == name or name is None:
-                cls = getattr(module, classname)
-                if type(cls) == type and cls != BaseTask and \
-                        issubclass(cls, BaseTask):
-                    tasks.append(cls)
+            _rebuild_cache()
+
     if name is not None:
-        assert len(tasks) in (0, 1), ('Found more than one task named {t!r}'
-                                      .format(t=name))
-    logger.info('Tasks found: {t}'.format(t=tasks))
-    _tasks_cache = tasks
-    return _tasks_cache
+        tasks_found = [_tasks_cache[name]]
+    else:
+        tasks_found = list(_tasks_cache.values())
+    logger.info('Tasks found: {t}'.format(t=tasks_found))
+    return tasks_found
 
 
 def find_tasks_by_filetype(filetype, first_only=True):
@@ -67,7 +74,7 @@ def find_tasks_by_filetype(filetype, first_only=True):
     for task in all_tasks:
         if task.can_handle(filetype):
             if first_only:
-                return task.__name__
+                return [task.__name__]
             suitable_tasks.append(task.__name__)
     return suitable_tasks
 
