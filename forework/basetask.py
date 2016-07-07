@@ -165,9 +165,10 @@ class BaseTask:
         task_name = taskdict['name'][0]
         cls = find_tasks(task_name)[0]
         path = taskdict['path']
-        path = taskdict.get('offset', 0)
+        offset = taskdict.get('offset', 0)
         args = taskdict.get('args', [])
-        task = cls(path, *args, priority=taskdict.get('priority', PRIO_NORMAL))
+        task = cls(path, offset=offset, *args,
+                   priority=taskdict.get('priority', PRIO_NORMAL))
         task.done = taskdict.get('completed', False)
         task._result = taskdict.get('result', None)
         return task

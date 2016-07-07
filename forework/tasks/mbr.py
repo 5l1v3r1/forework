@@ -2,6 +2,7 @@ import struct
 from collections import namedtuple
 
 from ..basetask import BaseTask, find_tasks_by_filetype
+from .. import utils
 
 # TODO handle extended partitions
 # TODO handle cases where the sector size is not 512 but 4096
@@ -9,6 +10,7 @@ from ..basetask import BaseTask, find_tasks_by_filetype
 
 SECTOR_SIZE = 512
 
+logger = utils.get_logger(__name__)
 
 MBR_FMT = (
     '<'  # little-endian
