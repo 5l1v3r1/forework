@@ -1,4 +1,4 @@
-filemagic
+python-magic
 imagemounter
 pytsk3
 pytest

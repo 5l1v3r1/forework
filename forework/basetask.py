@@ -100,6 +100,7 @@ class BaseTask:
         self._warnings = []
         self._priority = priority
         self._next_tasks = []
+        self.logger = utils.get_logger(self._name)
 
     def __repr__(self):
         return '<{cls}(result={r!r})>'.format(
@@ -207,7 +208,7 @@ class BaseTask:
         '''
         Add a warning message to the task's warnings
         '''
-        logger.warn(message)
+        self.logger.warn(message)
         self._warnings.append(message)
 
     def get_warnings(self):
@@ -218,13 +219,13 @@ class BaseTask:
 
     def start(self):
         self.done = False
-        logger.info('Task {tn} started at {ts}'.format(
+        self.logger.info('Task {tn} started at {ts}'.format(
             tn=self.__class__.__name__,
             ts=self._start,
         ))
         self.run()
         self.done = True
-        logger.info('Task {tn} ended at {ts}'.format(
+        self.logger.info('Task {tn} ended at {ts}'.format(
             tn=self.__class__.__name__,
             ts=self._end,
         ))
@@ -237,12 +238,12 @@ class BaseTask:
                'method must be overridden'.format(
                    myself=self.__class__.__name__)
                )
-        logger.warning(msg)
+        self.logger.warning(msg)
         raise NotImplementedError(msg)
 
     def get_result(self):
         if self.done:
             return self._result
         msg = 'Attempted to get results on a task that is still running'
-        logger.warning(msg)
+        self.logger.warning(msg)
         return None

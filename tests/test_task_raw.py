@@ -9,7 +9,7 @@ def test_init(test_image_1):
 
 def test_run(test_image_1):
     task = Raw(test_image_1)
-    task.run()
+    task.start()
     assert task.done is True
     assert task.get_result().startswith('DOS/MBR boot sector;')
     assert task.get_warnings() == []
