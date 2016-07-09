@@ -8,7 +8,7 @@ from . import scheduler
 from . import utils
 from .basetask import BaseTask
 from .tasks.raw import Raw
-from .tasks.mbr import MBR
+from .tasks.image import Image
 
 
 logger = utils.get_logger(__name__)

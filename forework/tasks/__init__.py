@@ -1,1 +1,1 @@
-__all__ = ['raw', 'mbr', 'dos_partition']
+__all__ = ['raw', 'image']
