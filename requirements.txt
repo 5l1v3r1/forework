@@ -1,3 +1,5 @@
 filemagic
+imagemounter
+pytsk3
 pytest
 pytest-cov

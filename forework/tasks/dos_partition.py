@@ -1,4 +1,8 @@
 from ..basetask import BaseTask
+from .. import utils
+
+
+logger = utils.get_logger(__name__)
 
 
 class DOSPartition(BaseTask):
@@ -7,6 +11,9 @@ class DOSPartition(BaseTask):
     MAGIC_PATTERN = r'^DOS 3.0\+ 16-bit FAT \(up to 32M\)$'
 
     def run(self):
-        with open(self._path, 'rb') as fd:
-            fd.seek(self._offset)
+        logger.debug('Opening {fn} at offset {off}'.format(
+            fn=self._path,
+            off=self._offset,
+        ))
+        # TODO implement
         self._result = ''
