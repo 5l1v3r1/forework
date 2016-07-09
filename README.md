@@ -13,6 +13,13 @@ and Computer Forensics at UCD (University College Dublin), in March 2016.
 
 # Installation
 
+## Install the requirements
+
+* The Sleuth kit (instal it the way you prefer, e.g. with `brew` on OS X)
+* Several python modules, listed in requirements.txt. Install them with `pip install -r requirements.txt`
+
+## Then install ForeWork
+
 ```bash
 python setup.py install
 ```
@@ -25,6 +32,9 @@ Requires `pytest` and `pytest-cov`. Run:
 py.test -v --cov=forework
 ```
 
+Note: ForeWork will soon be available on pypi, so that the installation will
+boild down to install The Sleuth Kit and then run `pip install forework`. But
+we're not there yet.
 
 # And who the hell are you?
 
