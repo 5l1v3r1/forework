@@ -1,1 +1,1 @@
-__all__ = ['raw', 'image']
+__all__ = ['raw', 'image', 'diskscanner']

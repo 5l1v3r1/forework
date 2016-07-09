@@ -100,11 +100,11 @@ class BaseTask:
         self._warnings = []
         self._priority = priority
         self._next_tasks = []
-        logger = utils.get_logger(self._name)
 
     def __repr__(self):
-        return '<{cls}(result={r!r})>'.format(
+        return '<{cls}(path={p!r}, result={r!r})>'.format(
             cls=self.__class__.__name__,
+            p=self._path,
             r=self._result if self._done else '<unfinished>',
         )
 
