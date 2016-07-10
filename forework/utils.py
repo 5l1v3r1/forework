@@ -6,7 +6,7 @@ from . import config
 
 def get_logger(name):
     logger = logging.getLogger(name)
-    logger.setLevel(logging.DEBUG)
+#    logger.setLevel(logging.DEBUG)
 
     formatter = logging.Formatter(
         '%(levelname)s|%(asctime)s|%(name)s|'

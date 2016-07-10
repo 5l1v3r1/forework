@@ -107,12 +107,12 @@ class Scheduler(threading.Thread):
                     logger.info('Result: {r!r}'.format(r=result))
         if self._client is not None:
             self._client.wait()
+            self.client = None
 
     def stop(self):
         self._running = False
         if self._client is not None:
             self._client.wait()
-        self._client = None
         self.join()
 
     def is_running(self):
