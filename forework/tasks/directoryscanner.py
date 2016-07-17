@@ -19,9 +19,16 @@ class DirectoryScanner(BaseTask):
     def run(self):
         logger.info('Scanning directory point {mp}'.format(mp=self._path))
         mage = magic.Magic()
+        # listdir can be put in trouble with directories with a large number of
+        # files.
+        # TODO use a proper streaming scheduler and yield the files while they
+        # are found
         for dirent in os.listdir(self._path):
             path = os.path.join(self._path, dirent)
-            filetype = mage.from_file(path)
+            if os.path.isdir(path):
+                filetype = 'directory'
+            else:
+                filetype = mage.from_file(path)
             tasknames = find_tasks_by_filetype(filetype)
             if len(tasknames) < 1:
                 msg = 'Cannot find a task for {fn}'.format(fn=path)
