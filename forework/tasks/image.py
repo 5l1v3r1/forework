@@ -1,7 +1,6 @@
 import imagemounter
 
-from ..basetask import BaseTask
-from .diskscanner import DiskScanner
+from ..basetask import BaseTask, find_tasks_by_filetype
 from .. import utils
 
 
@@ -23,6 +22,7 @@ class Image(BaseTask):
         except Exception as exc:
             logger.exception(exc)
             raise
+
         valid_volumes = []
         skipped_volumes = []
         for volume in volumes:
@@ -41,7 +41,7 @@ class Image(BaseTask):
                 continue
             logger.info('Adding mount point {mp}'.format(mp=volume.mountpoint))
             self.add_next_task({
-                'name': [DiskScanner.__name__],
+                'name': find_tasks_by_filetype('directory'),
                 'path': volume.mountpoint,
             })
             valid_volumes.append(volume)
