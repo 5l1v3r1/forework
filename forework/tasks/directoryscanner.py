@@ -35,7 +35,7 @@ class DirectoryScanner(BaseTask):
                 self.add_warning(msg)
                 continue
             self.add_next_task({
-                'name': tasknames[0],
+                'name': tasknames,
                 'path': path,
             })
         self._result = 'Found {tn} tasks, and {uf} unknown file types'.format(

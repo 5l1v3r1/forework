@@ -1,7 +1,13 @@
+import os
 import time
 import logging
 
+import magic
+
 from . import config
+
+
+mage = magic.Magic()
 
 
 def get_logger(name):
@@ -26,3 +32,9 @@ def get_logger(name):
     logger.addHandler(file_handler)
 
     return logger
+
+
+def get_file_type(path):
+    if os.path.isdir(path):
+        return 'directory'
+    return mage.from_file(path)
