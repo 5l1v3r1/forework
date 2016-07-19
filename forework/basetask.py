@@ -223,7 +223,10 @@ class BaseTask:
             tn=self.__class__.__name__,
             ts=self._start,
         ))
-        self.run()
+        try:
+            self.run()
+        except Exception as exc:
+            logger.exception(exc)
         self.done = True
         logger.info('Task {tn} ended at {ts}'.format(
             tn=self.__class__.__name__,
