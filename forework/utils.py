@@ -37,4 +37,6 @@ def get_logger(name):
 def get_file_type(path):
     if os.path.isdir(path):
         return 'directory'
+    if os.path.islink(path):
+        return 'symbolic link'
     return mage.from_file(path)
