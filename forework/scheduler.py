@@ -1,3 +1,4 @@
+import json
 import asyncio
 import threading
 
@@ -117,6 +118,11 @@ class Scheduler(threading.Thread):
 
     def is_running(self):
         return self._running is True
+
+    def save(self):
+        with open('results.json', 'w') as fd:
+            json.dump([x.to_dict() for x in self._finished_tasks], fd)
+        logger.info('Saved finished tasks to results.json')
 
 
 def get():
