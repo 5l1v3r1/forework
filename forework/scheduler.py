@@ -120,6 +120,11 @@ class Scheduler(threading.Thread):
         return self._running is True
 
     def save(self):
+        '''
+        Save the results to a JSON file
+        '''
+        if self._running:
+            logger.error('The scheduler must be stopped before saving')
         with open('results.json', 'w') as fd:
             json.dump([x.to_dict() for x in self._finished_tasks], fd)
         logger.info('Saved finished tasks to results.json')

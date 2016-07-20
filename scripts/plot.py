@@ -39,6 +39,7 @@ def plot(jdata):
 
     ax.xaxis_date()
     ax.invert_yaxis()
+    fig.autofmt_xdate()
     plt.show()
 
 
