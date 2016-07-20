@@ -1,1 +1,1 @@
-__all__ = ['raw', 'image', 'directoryscanner']
+__all__ = ['raw', 'image', 'directoryscanner', 'textfile']
