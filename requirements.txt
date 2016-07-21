@@ -3,3 +3,4 @@ imagemounter
 pytsk3
 pytest
 pytest-cov
+Pillow
