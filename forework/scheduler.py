@@ -26,7 +26,11 @@ class Scheduler(threading.Thread):
         self._running = False
         self._finished_tasks = []
         logger.debug('Initialized scheduler')
+        self._config = None
         threading.Thread.__init__(self)
+
+    def set_config(self, config):
+        self._config = config
 
     def enqueue(self, task):
         '''
@@ -54,7 +58,7 @@ class Scheduler(threading.Thread):
         '''
         Enqueue a task by creating it from a valid JSON description
         '''
-        self.enqueue(BaseTask.from_json(jsondata))
+        self.enqueue(BaseTask.from_json(jsondata, self._config))
 
     def _connect(self):
         '''

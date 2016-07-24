@@ -1,0 +1,6 @@
+--- # Investigation looking for images and PDFs
+- investigation: Sample Investigation
+  entrypoint: /path/to/image_or_directory
+  tasks:
+    PDFFile: { extract_pictures: true }
+    TextFile: { grep: 'some regex here' }

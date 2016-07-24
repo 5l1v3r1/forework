@@ -12,13 +12,14 @@ class TextFile(BaseTask):
 
     MAGIC_PATTERN = '^ASCII text.*'
 
-    def __init__(self, path, pattern=None, *args, **kwargs):
+    def __init__(self, path, conf, pattern=None, *args, **kwargs):
         self._path = path
-        self._pattern = pattern
-        BaseTask.__init__(self, path, *args, **kwargs)
+        BaseTask.__init__(self, path, conf, *args, **kwargs)
 
     def run(self):
-        if self._pattern is None:
+        try:
+            grep = self._config.get(self.__class__.__name__)['grep']
+        except KeyError:
             msg = 'No pattern requested for {path!r}'.format(
                 path=self._path,
             )
@@ -26,14 +27,17 @@ class TextFile(BaseTask):
             self._result = msg
             return
 
-        pattern = re.compile(self._pattern)
+        # TODO handle regex flags in configuration
+        pattern = re.compile(grep, re.MULTILINE | re.IGNORECASE | re.DOTALL)
+        # TODO implement grep for large text files. Can't mix mmap and text
+        #      regex'es.
         with open(self._path) as fd:
-            mm = mmap.mmap(fd.fileno(), 0)
-            match = pattern.match(mm)
-            msg = 'Pattern {pattern!r} {found}found in {path!r}'.format(
-                pattern=self._pattern,
+            match = pattern.search(fd.read())
+            msg = 'Pattern {pattern!r} {found}found in {path!r}{at}'.format(
+                pattern=grep,
                 found='' if match else 'not ',
                 path=self._path,
+                at='' if match is None else ' at {}'.format(match.span()),
             )
             logger.info(msg)
             self._result = msg
