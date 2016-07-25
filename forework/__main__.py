@@ -6,12 +6,15 @@ import IPython
 
 from . import scheduler
 from . import utils, config
-from .basetask import BaseTask
-from .tasks.raw import Raw
-from .tasks.image import Image
+from .basetask import BaseTask, find_tasks
 
 
 logger = utils.get_logger(__name__)
+
+# populate global namespace with tasks
+taskmap = {task.__name__: task for task in find_tasks()}
+globals().update(taskmap)
+del taskmap
 
 
 def parse_args(args=None):
