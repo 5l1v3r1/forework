@@ -48,11 +48,12 @@ def find_tasks(name=None, rebuild_cache=False):
     '''
     global _tasks_cache
     if config.ENABLE_TASKS_CACHE and not rebuild_cache:
-        if _tasks_cache is None:
+        if not _tasks_cache:
             logger.info('Tasks cache enabled but cache is empty. Performing '
                         'task search')
-        else:
             _rebuild_cache()
+    else:
+        _rebuild_cache()
 
     if name is not None:
         tasks_found = [_tasks_cache[name]]

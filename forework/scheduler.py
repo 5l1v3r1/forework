@@ -120,6 +120,10 @@ class Scheduler(threading.Thread):
             self._client.wait()
         self.join()
 
+    def wait(self):
+        if self._client is not None:
+            self._client.wait()
+
     def is_running(self):
         return self._running is True
 

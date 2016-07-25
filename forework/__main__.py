@@ -6,7 +6,9 @@ import IPython
 
 from . import scheduler
 from . import utils, config
+# the following imports are useful in the shell
 from .basetask import BaseTask, find_tasks
+from .tasks.raw import Raw
 
 
 logger = utils.get_logger(__name__)
