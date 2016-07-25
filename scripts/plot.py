@@ -19,7 +19,10 @@ def plot(jdata):
             min_date = start
         if max_date is None or end > max_date:
             max_date = end
-        labelsy.append('{t}({p!r})'.format(t=item['name'], p=item['path']))
+        path = item['path']
+        if len(path) > 10:
+            path = '...' + path[-10:]
+        labelsy.append('{t}({p!r})'.format(t=item['name'], p=path))
 
     fig = plt.figure()
     ax = fig.add_subplot(111)

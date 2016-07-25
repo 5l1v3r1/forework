@@ -14,6 +14,20 @@ loglevel_console = logging.WARNING
 loglevel_file = logging.DEBUG
 
 
+def yaml_join(loader, node):
+    seq = loader.construct_sequence(node)
+    if len(seq) < 1:
+        return ''
+    # strip leading slashes from everything except the first item
+    components = [seq[0]]
+    for item in seq[1:]:
+        components.append(str(item).strip('/'))
+    return os.path.join(*components)
+
+
+yaml.add_constructor('!join', yaml_join)
+
+
 class ForeworkConfig:
     '''
     Class to handle investigation configs, described in YAML.
@@ -52,6 +66,14 @@ class ForeworkConfig:
         Return the investigation name, or an empty string if no name is defined
         '''
         return self._config.get('investigation', '')
+
+    @property
+    def name(self):
+        '''
+        Return the investigation short name, or an empty string if no name is
+        defined
+        '''
+        return self._config.get('name', '')
 
     @property
     def entrypoint(self):

@@ -83,8 +83,8 @@ class BaseTask:
 
     # Pattern used to match the file type to the task
     MAGIC_PATTERN = None
-    # Modifiers that a task can handle. This is a mapping of str -> bool
-    MODIFIERS = {}
+    # Modifiers that a task can handle. This is a list of strings
+    MODIFIERS = []
     _rx = None
 
     def __init__(self, path, config, offset=0, priority=PRIO_NORMAL,
@@ -177,6 +177,13 @@ class BaseTask:
         task.done = taskdict.get('completed', False)
         task._result = taskdict.get('result', None)
         return task
+
+    @property
+    def conf(self):
+        '''
+        Return the configuration for the task
+        '''
+        return self._config.get(self.__class__.__name__)
 
     @property
     def done(self):

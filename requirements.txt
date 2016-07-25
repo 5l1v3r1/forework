@@ -4,4 +4,4 @@ pytsk3
 pytest
 pytest-cov
 Pillow
-fs
+pdfminer.six
