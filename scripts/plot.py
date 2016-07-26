@@ -20,12 +20,11 @@ def plot(jdata):
         if max_date is None or end > max_date:
             max_date = end
         path = item['path']
-        if len(path) > 15:
-            path = path[:3] + '...' + path[-10:]
+        if len(path) > 30:
+            path = path[:10] + '...' + path[-18:]
         labelsy.append(path)
-        #labelsy.append('{t}({p!r})'.format(t=item['name'], p=path))
 
-    fig = plt.figure()
+    fig = plt.figure(figsize=(30, 60))
     ax = fig.add_subplot(111)
 
     for idx, (start, end) in enumerate(yaxis):
@@ -44,6 +43,7 @@ def plot(jdata):
     ax.xaxis_date()
     ax.invert_yaxis()
     fig.autofmt_xdate()
+    plt.savefig('plot.png')
     plt.show()
 
 
