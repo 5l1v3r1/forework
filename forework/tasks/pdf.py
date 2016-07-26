@@ -1,6 +1,6 @@
 import os
-import json
-import zlib
+# import json
+# import zlib
 import tempfile
 import subprocess
 
@@ -50,14 +50,11 @@ class PDFFile(BaseTask):
                 try:
                     os.makedirs(outdir)
                 except FileExistsError:
-                    logger.warning('Directory {d!r} exists, removing and '
-                                   'recreating'.format(d=outdir))
-                    os.removedirs(outdir)
-                    os.makedirs(outdir)
+                    logger.warning('Directory {d!r} already exists, going '
+                                   'ahead anyway'.format(d=outdir))
 
                 # TODO horrible hack, in need for a pure Python implementation
                 prefix = os.path.join(outdir, self._config.name)
-                import pdb; pdb.set_trace()
                 subprocess.check_call(['pdfimages', '-j', self._path, prefix])
                 extracted_images = os.listdir(outdir)
 
