@@ -20,6 +20,7 @@ class JpegFile(BaseTask):
         # TODO Extract non-exif comments (i.e. fields starting with \xff\xfe)
         image = PIL.Image.open(self._path)
         tags = image._exiftags()
+        image.close()
         msg = 'Extracted {n} EXIF tags from {p!r}'.format(
             n=len(tags),
             p=self._path,

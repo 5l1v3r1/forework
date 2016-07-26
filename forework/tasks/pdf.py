@@ -32,12 +32,12 @@ class PDFFile(BaseTask):
             doc = PDFDocument(parser)
 
             # Get the /Info object
-            info = doc.info or '<empty>'
+            info = str(doc.info) or '<empty>'
 
             # Get the /Metadata object
             metadata = '<empty>'
             if 'Metadata' in doc.catalog:
-                metadata = resolve1(doc.catalog['Metadata']).get_data()
+                metadata = str(resolve1(doc.catalog['Metadata']).get_data())
 
             # check the modifiers
             extracted_images = []
