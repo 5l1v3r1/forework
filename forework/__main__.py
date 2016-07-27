@@ -1,5 +1,4 @@
 import sys
-import time
 import argparse
 
 import IPython
@@ -33,6 +32,7 @@ def main():
     conf = config.ForeworkConfig(args.config)
     sched = scheduler.get()
     sched.set_config(conf)
+    sched.enqueue(Raw(conf.entrypoint, conf))
     IPython.embed()
 
 main()

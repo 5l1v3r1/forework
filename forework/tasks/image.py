@@ -12,7 +12,10 @@ class Image(BaseTask):
     Task to handle MBR objects
     '''
 
-    MAGIC_PATTERN = '^DOS/MBR boot sector.*'
+    MAGIC_PATTERN = (
+        '^DOS/MBR boot sector.*|'
+        '^EWF/Expert Witness/EnCase image file format$'
+    )
 
     def run(self):
         logger.info('Parsing image {p}, ignoring offset'.format(p=self._path))

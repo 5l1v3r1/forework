@@ -19,7 +19,12 @@ class JpegFile(BaseTask):
         # TODO Extract IPTC info too
         # TODO Extract non-exif comments (i.e. fields starting with \xff\xfe)
         image = PIL.Image.open(self._path)
-        tags = image._exiftags()
+        try:
+            tags = image._exiftags()
+        except AttributeError:
+            msg = 'Warning: no EXIF tags found for {f!r}'.format(r=self._path)
+            self.add_warnings(msg)
+            logger.warning(msg)
         image.close()
         msg = 'Extracted {n} EXIF tags from {p!r}'.format(
             n=len(tags),

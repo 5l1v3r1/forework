@@ -21,7 +21,14 @@ class DirectoryScanner(BaseTask):
         # while they are found
         for dirent in os.listdir(self._path):
             path = os.path.join(self._path, dirent)
-            filetype = utils.get_file_type(path)
+            try:
+                filetype = utils.get_file_type(path)
+            except FileNotFoundError as exc:
+                msg = 'The file {f!r} cannot be read, skipping'.format(f=path)
+                self.add_warning(msg)
+                logger.warning(msg)
+                logger.exception(exc)
+                continue
             tasknames = find_tasks_by_filetype(filetype)
             if len(tasknames) < 1:
                 msg = 'Cannot find a task for {fn}'.format(fn=path)
