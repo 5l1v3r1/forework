@@ -44,6 +44,7 @@ def plot(jdata):
     ax.invert_yaxis()
     fig.autofmt_xdate()
     plt.savefig('plot.png')
+    print('Saved to plot.png')
     plt.show()
 
 

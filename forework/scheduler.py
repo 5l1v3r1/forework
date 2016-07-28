@@ -3,6 +3,7 @@ import asyncio
 import threading
 
 import ipyparallel as parallel
+import ipyparallel.error
 
 from . import task_queue, utils, basetask
 from .basetask import BaseTask
@@ -79,6 +80,7 @@ class Scheduler(threading.Thread):
 
         lview = self._client.load_balanced_view()
         pending = set()
+        tasks_to_retry_to_fetch = set()
         while self._running:
             # wait for completed tasks from the client
             try:
@@ -103,13 +105,36 @@ class Scheduler(threading.Thread):
             if amr:
                 pending = pending.union(set(amr.msg_ids))
 
-            # do something with the completed tasks
-            for msg_id in finished:
-                for result in self._client.get_result(msg_id).get():
+            # check if there are tasks to retry to fetch
+            for msg_id in tasks_to_retry_to_fetch:
+                try:
+                    results = self._client.get_result(msg_id).get()
+                except (ipyparallel.error.RemoteError, TypeError):
+                    # will retry later
+                    continue
+                tasks_to_retry_to_fetch.remove(msg_id)
+                # TODO this loop duplicates the code below. Remove duplication
+                for result in results:
                     self._finished_tasks.append(result)
                     for jsontask in result.get_next_tasks():
                         self.enqueue_from_json(jsontask)
                     logger.info('Result: {r!r}'.format(r=result))
+
+            # do something with the completed tasks
+            for msg_id in finished:
+                try:
+                    results = self._client.get_result(msg_id).get()
+                except (ipyparallel.error.RemoteError, TypeError):
+                    tasks_to_retry_to_fetch.add(msg_id)
+                    continue
+                # NOTE keep this loop in sync with the loop above until the code
+                # duplication is removed
+                for result in results:
+                    self._finished_tasks.append(result)
+                    for jsontask in result.get_next_tasks():
+                        self.enqueue_from_json(jsontask)
+                    logger.info('Result: {r!r}'.format(r=result))
+
         if self._client is not None:
             self._client.wait()
             self.client = None

@@ -1,3 +1,4 @@
+import os
 import sys
 import argparse
 
@@ -25,6 +26,14 @@ def parse_args(args=None):
     parser.add_argument('-c', '--config', required=True,
                         help='Configuration file for the investigation (YAML)')
     return parser.parse_args(args)
+
+
+def calcsize(filelist):
+    size = 0
+    for fname in filelist:
+        if os.path.isfile(fname):
+            size += os.stat(fname).st_size
+    return size
 
 
 def main():
