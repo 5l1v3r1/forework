@@ -26,6 +26,13 @@ class TextFile(BaseTask):
             logger.info(msg)
             self._result = msg
             return
+        except TypeError:
+            # configuration not set for TextFile
+            msg = ('Cannot get configuration for TextFile, possibly not set in '
+                   'the YML config'
+                   )
+            logger.debug(msg)
+            pass
 
         # TODO handle regex flags in configuration
         pattern = re.compile(grep, re.MULTILINE | re.IGNORECASE | re.DOTALL)
