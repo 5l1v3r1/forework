@@ -51,19 +51,25 @@
 \pagestyle{fancy} % All pages have headers and footers
 \fancyhead{} % Blank out the default header
 \fancyfoot{} % Blank out the default footer
-\fancyhead[C]{Running title $\bullet$ October 2015} % Custom header text
+%\fancyhead[C]{ForeWork: a distributed framework for automated extraction of triaged forensic artifacts $\bullet$ August 2016} % Custom header text
 \fancyfoot[RO,LE]{\thepage} % Custom footer text
 
 %----------------------------------------------------------------------------------------
 %	TITLE SECTION
 %----------------------------------------------------------------------------------------
 
-\title{\vspace{-15mm}\fontsize{24pt}{10pt}\selectfont\textbf{ForeWork, a distributed framework for automated extraction of triaged forensic artifacts}} % Article title
-\author{
-\large
+\title{\vspace{-15mm}\fontsize{24pt}{10pt}\selectfont\textbf{ForeWork,
+    a distributed real-time framework for automated extraction of
+    triaged forensic artifacts}} % Article title
+\author{\large
 \textsc{Andrea Barberio}\thanks{A thank you or further information}\\[2mm] % Your name
-% \normalsize University of California \\ % Your institution
-\normalsize \href{mailto:insomniac@slackware.it}{insomniac@slackware.it} % Your email address
+\normalsize University College Dublin \\ % Your institution
+\normalsize
+    \{
+        \href{mailto:andrea.barberio@ucdconnect.ie}{andrea.barberio@ucdconnect.ie},
+        \href{mailto:insomniac@slackware.it}{insomniac@slackware.it}
+    \}
+    % Your email address
 \vspace{-5mm}
 }
 \date{}
@@ -82,7 +88,46 @@
 
 \begin{abstract}
 
-\noindent \lipsum[1] % Dummy abstract text
+% abstract topics: question/purpose, design and methods, major findings,
+% results, interpretation and conclusions
+\noindent
+    % intro
+    This paper describes ForeWork, a novel software framework for
+    simplifying and automating the extraction of forensic artifacts in a
+    distributed and efficient manner.
+    % question/purpose
+    Modern investigations can involve large amounts of data, often requiring
+    long time in order to be analyzed.
+    Digital evidence shows a bigger impact if it is found within the first few
+    days since the start of the trial.
+%    This means that an investigation
+%    involving a large amount of data may result less effective if the most
+%    important evidence is not obtained in time.
+    The existing distributed forensic frameworks focus on extracting all the artifacts
+    in the shortest time span possible, but in no special order.
+    ForeWork instead puts more emphasis on extracting the artifacts that the
+    investigator considers more important for the case.
+    % design and methods
+    To achieve this, we use a parallel, distributed, horizontally
+    scalable, stream-processing  approach, that is not found in other forensic
+    softwares.
+%    % other main goals
+%    % This paragraph maybe can be removed
+%    \textbf{Other main goals of ForeWork are: interactivity (the
+%    forensic examiner can observe any artifact in detail, and conduct in-depth manual
+%    analysis), ease of extensibility (no special programming skill is required
+%    to implement new analysis plugins), ease of adoption (it is written in an
+%    approachable and widespread language, Python 3, that makes adoption and
+%    contribution easier) and friendly licensing (it is open source, under the
+%    permissive BSD licence, suitable for both the open source and the commercial
+%    worlds).
+%    }
+    % findings and conclusions
+    In this paper we show how the distributed, stream processing approach,
+    together with prioritizing the extraction of the most important artifacts,
+    can help maximize the chances of obtaining useful forensic evidence in
+    shorter time, compared to a regular distributed batch-processing framework.
+% \noindent \lipsum[1] % Dummy abstract text
 
 \end{abstract}
 
@@ -96,6 +141,7 @@
 
 \lettrine[nindent=0em,lines=3]{L} orem ipsum dolor sit amet, consectetur adipiscing elit.
 \lipsum[2-3] % Dummy text
+
 
 %------------------------------------------------
 
@@ -159,12 +205,12 @@ e = mc^2
 
 \begin{thebibliography}{99} % Bibliography - this is intentionally simple in this template
 
-\bibitem[Figueredo and Wolf, 2009]{Figueredo:2009dg}
-Figueredo, A.~J. and Wolf, P. S.~A. (2009).
-\newblock Assortative pairing and life history strategy - a cross-cultural
-  study.
-\newblock {\em Human Nature}, 20:317--330.
- 
+\bibitem{vanbeek2015}
+    H.M.A van Beek, E.J. van Eijk, R.B. van Baar, M. Ugen, J.N.C. Bodde, A.J. Siemelink,
+    \emph{Digital forensics as a service: Game On},
+    Netherlands Forensic Institute,
+    December 2015
+
 \end{thebibliography}
 
 %----------------------------------------------------------------------------------------
