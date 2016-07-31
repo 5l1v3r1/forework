@@ -1,8 +1,6 @@
 from ..basetask import BaseTask, find_tasks_by_filetype
 from .. import utils
 
-import magic
-
 
 logger = utils.get_logger(__name__)
 
@@ -21,11 +19,8 @@ class Raw(BaseTask):
             p=self._path,
             o=self._offset,
         ))
-        mage = magic.Magic()
         # Try to recognize the file content using libmagic
-        filetype = mage.from_file(self._path)
-        self._result = filetype
-        del mage
+        filetype = utils.get_file_type(self._path)
         self.add_next_task({
             'name': find_tasks_by_filetype(filetype),
             'path': self._path
@@ -35,3 +30,4 @@ class Raw(BaseTask):
             o=self._offset,
             t=self._result,
         ))
+        self._result = filetype

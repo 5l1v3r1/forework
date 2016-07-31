@@ -1,12 +1,18 @@
+import os
 import time
 import logging
+
+import magic
 
 from . import config
 
 
+mage = magic.Magic()
+
+
 def get_logger(name):
     logger = logging.getLogger(name)
-#    logger.setLevel(logging.DEBUG)
+    logger.setLevel(logging.INFO)
 
     formatter = logging.Formatter(
         '%(levelname)s|%(asctime)s|%(name)s|'
@@ -26,3 +32,11 @@ def get_logger(name):
     logger.addHandler(file_handler)
 
     return logger
+
+
+def get_file_type(path):
+    if os.path.isdir(path):
+        return 'directory'
+    if os.path.islink(path):
+        return 'symbolic link'
+    return mage.from_file(path)

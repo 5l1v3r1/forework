@@ -1,7 +1,9 @@
+import json
 import asyncio
 import threading
 
 import ipyparallel as parallel
+import ipyparallel.error
 
 from . import task_queue, utils, basetask
 from .basetask import BaseTask
@@ -25,7 +27,11 @@ class Scheduler(threading.Thread):
         self._running = False
         self._finished_tasks = []
         logger.debug('Initialized scheduler')
+        self._config = None
         threading.Thread.__init__(self)
+
+    def set_config(self, config):
+        self._config = config
 
     def enqueue(self, task):
         '''
@@ -53,7 +59,7 @@ class Scheduler(threading.Thread):
         '''
         Enqueue a task by creating it from a valid JSON description
         '''
-        self.enqueue(BaseTask.from_json(jsondata))
+        self.enqueue(BaseTask.from_json(jsondata, self._config))
 
     def _connect(self):
         '''
@@ -74,6 +80,7 @@ class Scheduler(threading.Thread):
 
         lview = self._client.load_balanced_view()
         pending = set()
+        tasks_to_retry_to_fetch = set()
         while self._running:
             # wait for completed tasks from the client
             try:
@@ -98,13 +105,36 @@ class Scheduler(threading.Thread):
             if amr:
                 pending = pending.union(set(amr.msg_ids))
 
-            # do something with the completed tasks
-            for msg_id in finished:
-                for result in self._client.get_result(msg_id).get():
+            # check if there are tasks to retry to fetch
+            for msg_id in tasks_to_retry_to_fetch:
+                try:
+                    results = self._client.get_result(msg_id).get()
+                except (ipyparallel.error.RemoteError, TypeError):
+                    # will retry later
+                    continue
+                tasks_to_retry_to_fetch.remove(msg_id)
+                # TODO this loop duplicates the code below. Remove duplication
+                for result in results:
                     self._finished_tasks.append(result)
                     for jsontask in result.get_next_tasks():
                         self.enqueue_from_json(jsontask)
                     logger.info('Result: {r!r}'.format(r=result))
+
+            # do something with the completed tasks
+            for msg_id in finished:
+                try:
+                    results = self._client.get_result(msg_id).get()
+                except (ipyparallel.error.RemoteError, TypeError):
+                    tasks_to_retry_to_fetch.add(msg_id)
+                    continue
+                # NOTE keep this loop in sync with the loop above until the code
+                # duplication is removed
+                for result in results:
+                    self._finished_tasks.append(result)
+                    for jsontask in result.get_next_tasks():
+                        self.enqueue_from_json(jsontask)
+                    logger.info('Result: {r!r}'.format(r=result))
+
         if self._client is not None:
             self._client.wait()
             self.client = None
@@ -115,8 +145,22 @@ class Scheduler(threading.Thread):
             self._client.wait()
         self.join()
 
+    def wait(self):
+        if self._client is not None:
+            self._client.wait()
+
     def is_running(self):
         return self._running is True
+
+    def save(self, filename='results.json'):
+        '''
+        Save the results to a JSON file
+        '''
+        if self._running:
+            logger.error('The scheduler must be stopped before saving')
+        with open(filename, 'w') as fd:
+            json.dump([x.to_dict() for x in self._finished_tasks], fd)
+        logger.info('Saved finished tasks to {f}'.format(f=filename))
 
 
 def get():

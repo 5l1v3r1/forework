@@ -3,3 +3,5 @@ imagemounter
 pytsk3
 pytest
 pytest-cov
+Pillow
+pdfminer.six

@@ -48,11 +48,12 @@ def find_tasks(name=None, rebuild_cache=False):
     '''
     global _tasks_cache
     if config.ENABLE_TASKS_CACHE and not rebuild_cache:
-        if _tasks_cache is None:
+        if not _tasks_cache:
             logger.info('Tasks cache enabled but cache is empty. Performing '
                         'task search')
-        else:
             _rebuild_cache()
+    else:
+        _rebuild_cache()
 
     if name is not None:
         tasks_found = [_tasks_cache[name]]
@@ -81,10 +82,13 @@ def find_tasks_by_filetype(filetype, first_only=True):
 
 class BaseTask:
 
+    # Pattern used to match the file type to the task
     MAGIC_PATTERN = None
+    # Modifiers that a task can handle. This is a list of strings
+    MODIFIERS = []
     _rx = None
 
-    def __init__(self, path, offset=0, priority=PRIO_NORMAL,
+    def __init__(self, path, config, offset=0, priority=PRIO_NORMAL,
                  time_function=None):
         self._name = self.__class__.__name__
         self._path = path
@@ -100,6 +104,7 @@ class BaseTask:
         self._warnings = []
         self._priority = priority
         self._next_tasks = []
+        self._config = config
 
     def __repr__(self):
         return '<{cls}(path={p!r}, result={r!r})>'.format(
@@ -152,14 +157,14 @@ class BaseTask:
         }
 
     @staticmethod
-    def from_json(taskjson):
+    def from_json(taskjson, config=None):
         '''
         Build a task from its JSON representation (see `to_json`)
         '''
-        return BaseTask.from_dict(json.loads(taskjson))
+        return BaseTask.from_dict(json.loads(taskjson), config)
 
     @staticmethod
-    def from_dict(taskdict):
+    def from_dict(taskdict, config=None):
         '''
         Build a task from its dict representation (see `to_dict`)
         '''
@@ -168,11 +173,18 @@ class BaseTask:
         path = taskdict['path']
         offset = taskdict.get('offset', 0)
         args = taskdict.get('args', [])
-        task = cls(path, offset=offset, *args,
+        task = cls(path, config, offset=offset, *args,
                    priority=taskdict.get('priority', PRIO_NORMAL))
         task.done = taskdict.get('completed', False)
         task._result = taskdict.get('result', None)
         return task
+
+    @property
+    def conf(self):
+        '''
+        Return the configuration for the task
+        '''
+        return self._config.get(self.__class__.__name__)
 
     @property
     def done(self):
@@ -223,7 +235,10 @@ class BaseTask:
             tn=self.__class__.__name__,
             ts=self._start,
         ))
-        self.run()
+        try:
+            self.run()
+        except Exception as exc:
+            logger.exception(exc)
         self.done = True
         logger.info('Task {tn} ended at {ts}'.format(
             tn=self.__class__.__name__,

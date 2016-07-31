@@ -1,41 +1,47 @@
+import os
 import sys
-import time
 import argparse
 
 import IPython
 
 from . import scheduler
-from . import utils
-from .basetask import BaseTask
+from . import utils, config
+# the following imports are useful in the shell
+from .basetask import BaseTask, find_tasks
 from .tasks.raw import Raw
-from .tasks.image import Image
 
 
 logger = utils.get_logger(__name__)
 
+# populate global namespace with tasks
+taskmap = {task.__name__: task for task in find_tasks()}
+globals().update(taskmap)
+del taskmap
+
 
 def parse_args(args=None):
     if args is None:
-        args = sys.argv
-    parser = argparse.ArgumentParser(name='forework')
+        args = sys.argv[1:]
+    parser = argparse.ArgumentParser(prog='forework')
+    parser.add_argument('-c', '--config', required=True,
+                        help='Configuration file for the investigation (YAML)')
     return parser.parse_args(args)
 
 
-def analyze_raw_file(filename):
-    print('Analyzing {}'.format(filename))
-    sched = scheduler.get()
-    task = Raw(filename)
-    sched.enqueue(task)
-    sched.start()
-    TIMEOUT = 10
-    logger.debug('Scheduler will run for {t} seconds'.format(t=TIMEOUT))
-    time.sleep(TIMEOUT)
-    logger.info('Stopping scheduler after {t} seconds'.format(t=TIMEOUT))
-    sched.stop()
+def calcsize(filelist):
+    size = 0
+    for fname in filelist:
+        if os.path.isfile(fname):
+            size += os.stat(fname).st_size
+    return size
 
 
 def main():
+    args = parse_args()
+    conf = config.ForeworkConfig(args.config)
     sched = scheduler.get()
+    sched.set_config(conf)
+    sched.enqueue(Raw(conf.entrypoint, conf))
     IPython.embed()
 
 main()
