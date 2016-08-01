@@ -20,6 +20,27 @@ class Results:
     def __len__(self):
         return len(self._results)
 
+    def __repr__(self):
+        return '<{c}(results=<{n} tasks>)>'.format(
+            c=self.__class__.__name__,
+            n=len(self),
+        )
+
+    def __getitem__(self, item):
+        '''
+        Return all the tasks with the given name
+        '''
+        if type(item) == int:
+            # address by index
+            return self._results[item]
+        else:
+            # address by name
+            res = []
+            for task in self._results:
+                if task._name == item:
+                    res.append(task)
+            return res
+
     def save(self, filename=DEFAULT_RESULTS_FILE):
         with open(filename, 'w') as fd:
             json.dump([x.to_dict() for x in self._results], fd)
