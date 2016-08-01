@@ -1,4 +1,5 @@
 import json
+import time
 import asyncio
 import threading
 
@@ -81,7 +82,12 @@ class Scheduler(threading.Thread):
         lview = self._client.load_balanced_view()
         pending = set()
         tasks_to_retry_to_fetch = set()
-        while self._running:
+        while True:
+            # stop if requested explicitly
+            if not self._running:
+                self._client.abort()
+                break
+
             # wait for completed tasks from the client
             try:
                 self._client.wait(pending, 1e-1)
@@ -138,16 +144,20 @@ class Scheduler(threading.Thread):
         if self._client is not None:
             self._client.wait()
             self.client = None
+        self._running = False
 
     def stop(self):
         self._running = False
         if self._client is not None:
             self._client.wait()
+
         self.join()
 
     def wait(self):
-        if self._client is not None:
-            self._client.wait()
+        while True:
+            if not self._running:
+                break
+            time.sleep(.1)
 
     def is_running(self):
         return self._running is True

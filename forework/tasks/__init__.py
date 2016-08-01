@@ -4,5 +4,6 @@ __all__ = [
     'directoryscanner',
     'textfile',
     'jpeg',
-    'pdf'
+    'pdf',
+    'zip',
 ]

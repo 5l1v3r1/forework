@@ -12,7 +12,7 @@ mage = magic.Magic()
 
 def get_logger(name):
     logger = logging.getLogger(name)
-    logger.setLevel(logging.INFO)
+    logger.setLevel(logging.WARNING)
 
     formatter = logging.Formatter(
         '%(levelname)s|%(asctime)s|%(name)s|'
