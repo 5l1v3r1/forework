@@ -105,9 +105,17 @@ class Scheduler(threading.Thread):
                     new_tasks.append(self._task_queue.get_nowait())
                 except asyncio.QueueEmpty:
                     break
+            # sort tasks by task priority
+            priority_tasks, remaining_tasks = [], []
+            for task in new_tasks:
+                if task.__class__.__name__ in self._config.priority:
+                    priority_tasks.append(task)
+                else:
+                    remaining_tasks.append(task)
+            prioritized_tasks = priority_tasks = remaining_tasks
 
             # add pending tasks to the pending task set used early in this loop
-            amr = lview.map(lambda t: t.start(), new_tasks)
+            amr = lview.map(lambda t: t.start(), prioritized_tasks)
             if amr:
                 pending = pending.union(set(amr.msg_ids))
 
