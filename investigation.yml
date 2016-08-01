@@ -1,6 +1,9 @@
 --- # Investigation looking for images and PDFs
 - investigation: Sample Investigation
+  name: &name inv001
   entrypoint: /path/to/image_or_directory
+  priority: [PDFFile, JpegFile]
   tasks:
-    PDFFile: { extract_pictures: true }
+    PDFFile: { extract_pictures: true, outdir: !join [/tmp/, *name, pdf] }
     TextFile: { grep: 'some regex here' }
+    ZipFile: { outdir: !join [/tmp, *name, pdf] }
