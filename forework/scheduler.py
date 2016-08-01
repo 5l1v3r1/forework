@@ -130,7 +130,7 @@ class Scheduler(threading.Thread):
                 # TODO this loop duplicates the code below. Remove duplication
                 for result in results:
                     self._finished_tasks.append(result)
-                    for jsontask in result.get_next_tasks():
+                    for jsontask in result.next_tasks:
                         self.enqueue_from_json(jsontask)
                     logger.info('Result: {r!r}'.format(r=result))
 
@@ -145,7 +145,7 @@ class Scheduler(threading.Thread):
                 # duplication is removed
                 for result in results:
                     self._finished_tasks.append(result)
-                    for jsontask in result.get_next_tasks():
+                    for jsontask in result.next_tasks:
                         self.enqueue_from_json(jsontask)
                     logger.info('Result: {r!r}'.format(r=result))
 
