@@ -187,6 +187,10 @@ class BaseTask:
         return self._config.get(self.__class__.__name__)
 
     @property
+    def path(self):
+        return self._path
+
+    @property
     def done(self):
         return self._done
 

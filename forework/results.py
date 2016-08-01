@@ -1,4 +1,6 @@
 import json
+import subprocess
+import collections
 
 import dateutil
 import matplotlib.pyplot as plt
@@ -7,6 +9,7 @@ import matplotlib.dates as mdates
 
 DEFAULT_RESULTS_FILE = 'results.json'
 DEFAULT_PLOT_FILE = 'results.png'
+DEFAULT_EDITOR = 'vim'
 
 
 class Results:
@@ -14,8 +17,10 @@ class Results:
     Class that wraps the results obtained from a Forework Scheduler
     '''
 
-    def __init__(self, results=None):
+    def __init__(self, results=None, start=None, end=None):
         self._results = results or []
+        self.start = start
+        self.end = end
 
     def __len__(self):
         return len(self._results)
@@ -91,3 +96,38 @@ class Results:
         plt.savefig(filename)
         plt.show()
         return filename
+
+    def edit(self, item_or_path_or_index, editor=DEFAULT_EDITOR):
+        if type(item_or_path_or_index) == int:
+            item = self[item_or_path_or_index].path
+        elif type(item_or_path_or_index) == str:
+            item = item_or_path_or_index
+        else:
+            item = item_or_path_or_index.path
+        subprocess.call([editor, item])
+
+    def stats(self):
+        if self.start is None or self.end is None:
+            duration = '<unknown>'
+        else:
+            duration = self.end - self.start
+        counter = collections.Counter([t._name for t in self._results])
+        top10 = ''
+        for (task, frequency) in counter.most_common(10):
+            top10 += '        {t} (appeared {f} times)\n'.format(
+                t=task,
+                f=frequency,
+            )
+        print(
+            'Start time       : {start}\n'
+            'End time         : {end}\n'
+            'Duration         : {duration}\n'
+            'Analyzed objects : {nobj}\n'
+            'Top file types   : \n{top10}\n'.format(
+                start=self.start,
+                end=self.end,
+                duration=duration,
+                nobj=len(counter),
+                top10=top10,
+            )
+        )

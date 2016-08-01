@@ -1,7 +1,9 @@
-import json
+import copy
 import time
 import asyncio
+import datetime
 import threading
+import collections
 
 import ipyparallel as parallel
 import ipyparallel.error
@@ -29,6 +31,8 @@ class Scheduler(threading.Thread):
         self._finished_tasks = []
         logger.debug('Initialized scheduler')
         self._config = None
+        self._start_time = None
+        self._end_time = None
         threading.Thread.__init__(self)
 
     def set_config(self, config):
@@ -82,6 +86,8 @@ class Scheduler(threading.Thread):
         lview = self._client.load_balanced_view()
         pending = set()
         tasks_to_retry_to_fetch = set()
+        self._start_time = datetime.datetime.now()
+        self._end_time = None
         while True:
             # stop if requested explicitly
             if not self._running:
@@ -149,6 +155,8 @@ class Scheduler(threading.Thread):
                         self.enqueue_from_json(jsontask)
                     logger.info('Result: {r!r}'.format(r=result))
 
+        self._end_time = datetime.datetime.now()
+
         if self._client is not None:
             self._client.wait()
             self.client = None
@@ -163,7 +171,7 @@ class Scheduler(threading.Thread):
 
     def wait(self):
         while True:
-            if not self._running:
+            if not self._running and self._end_time is not None:
                 break
             time.sleep(.1)
 
@@ -172,7 +180,13 @@ class Scheduler(threading.Thread):
 
     @property
     def results(self):
-        return results.Results(self._finished_tasks)
+        start_time = self._start_time
+        end_time = self._end_time
+        tasks = copy.copy(self._finished_tasks)
+        if end_time is None:
+            if start_time is not None:
+                end_time = datetime.datetime.now()
+        return results.Results(tasks, start_time, end_time)
 
 
 def get():
