@@ -127,7 +127,7 @@ class Results:
                 start=self.start,
                 end=self.end,
                 duration=duration,
-                nobj=len(counter),
+                nobj=len(self._results),
                 top10=top10,
             )
         )
