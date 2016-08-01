@@ -82,3 +82,10 @@ class ForeworkConfig:
         defined
         '''
         return self._config.get('entrypoint', '')
+
+    @property
+    def priority(self):
+        '''
+        Return the list of tasks to prioritize
+        '''
+        return self._config.get('priority', [])
