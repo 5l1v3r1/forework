@@ -6,6 +6,8 @@ import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 
 
+ADD_Y_LABELS = False
+
 def plot(jdata):
     min_date = None
     max_date = None
@@ -19,10 +21,11 @@ def plot(jdata):
             min_date = start
         if max_date is None or end > max_date:
             max_date = end
-        path = item['path']
-        if len(path) > 30:
-            path = path[:10] + '...' + path[-18:]
-        labelsy.append(path)
+        if ADD_Y_LABELS:
+            path = item['path']
+            if len(path) > 30:
+                path = path[:10] + '...' + path[-18:]
+            labelsy.append(path)
 
     fig = plt.figure(figsize=(30, 60))
     ax = fig.add_subplot(111)
