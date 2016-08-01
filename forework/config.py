@@ -54,6 +54,22 @@ class ForeworkConfig:
         self._config = config[0]
         self._config_file = config_file
 
+    def __repr__(self):
+        return '''ForeworkConfig:
+    investigation : {i!r}
+    short name    : {n!r}
+    entry point   : {e!r}
+    priority      : {p!r}
+    tasks:
+        {tt}
+    '''.format(
+        i=self.investigation,
+        n=self.name,
+        e=self.entrypoint,
+        p=self.priority,
+        tt='\n        '.join(['{k} : {v}'.format(k=k, v=v) for (k, v) in self._config['tasks'].items()]),
+    )
+
     def get(self, task_name):
         '''
         Return task-specific configuration as name -> value dictionary
