@@ -6,7 +6,7 @@ import threading
 import ipyparallel as parallel
 import ipyparallel.error
 
-from . import task_queue, utils, basetask
+from . import task_queue, utils, basetask, results
 from .basetask import BaseTask
 
 _scheduler = None
@@ -170,15 +170,9 @@ class Scheduler(threading.Thread):
     def is_running(self):
         return self._running is True
 
-    def save(self, filename='results.json'):
-        '''
-        Save the results to a JSON file
-        '''
-        if self._running:
-            logger.error('The scheduler must be stopped before saving')
-        with open(filename, 'w') as fd:
-            json.dump([x.to_dict() for x in self._finished_tasks], fd)
-        logger.info('Saved finished tasks to {f}'.format(f=filename))
+    @property
+    def results(self):
+        return results.Results(self._finished_tasks)
 
 
 def get():
