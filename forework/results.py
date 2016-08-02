@@ -1,3 +1,4 @@
+import os
 import json
 import subprocess
 import collections
@@ -19,6 +20,7 @@ class Results:
 
     def __init__(self, results=None, start=None, end=None):
         self._results = results or []
+        self._size = None
         self.start = start
         self.end = end
 
@@ -30,6 +32,15 @@ class Results:
             c=self.__class__.__name__,
             n=len(self),
         )
+
+    def size(self):
+        if self._size is None:
+            size = 0
+            for task in self._results:
+                if os.path.isfile(task._path):
+                    size += os.stat(task._path).st_size
+            self._size = size
+        return self._size
 
     def __getitem__(self, item):
         '''
