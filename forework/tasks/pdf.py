@@ -4,6 +4,10 @@ import os
 import tempfile
 import subprocess
 
+from pdfminer.pdfparser import PDFParser
+from pdfminer.pdfdocument import PDFDocument
+from pdfminer.pdftypes import resolve1
+
 from ..basetask import BaseTask
 from .directoryscanner import DirectoryScanner
 from .. import utils
