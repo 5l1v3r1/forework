@@ -26,7 +26,7 @@ class ZipFile(BaseTask):
         )
         logger.info(msg)
         self.add_next_task({
-            'name': DirectoryScanner.__name__,
+            'name': [DirectoryScanner.__name__],
             'path': outdir,
         })
         self._result = msg
