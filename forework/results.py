@@ -134,11 +134,13 @@ class Results:
             'End time         : {end}\n'
             'Duration         : {duration}\n'
             'Analyzed objects : {nobj}\n'
+            'Total size       : {size} bytes\n'
             'Top file types   : \n{top10}\n'.format(
                 start=self.start,
                 end=self.end,
                 duration=duration,
                 nobj=len(self._results),
+                size=self.size(),
                 top10=top10,
             )
         )
