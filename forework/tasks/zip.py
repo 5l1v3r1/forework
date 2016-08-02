@@ -17,7 +17,7 @@ class ZipFile(BaseTask):
         BaseTask.__init__(self, path, *args, **kwargs)
 
     def run(self):
-        outdir = self.conf.get(['outdir'], tempfile.mkdtemp())
+        outdir = self.conf.get('outdir', tempfile.mkdtemp())
         with zipfile.ZipFile(self._path) as zf:
             zf.extractall(outdir)
         msg = 'Zip file {z!r} extracted at {t!r}'.format(
