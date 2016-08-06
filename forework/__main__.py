@@ -2,13 +2,14 @@ import os
 import sys
 import time
 import argparse
+import datetime
 
 import IPython
 
 from . import scheduler
 from . import utils, config
 # the following imports are useful in the shell
-from .basetask import BaseTask, find_tasks
+from .basetask import BaseTask, find_tasks, now
 from .tasks.raw import Raw
 
 

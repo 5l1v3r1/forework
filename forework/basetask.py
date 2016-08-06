@@ -2,6 +2,9 @@ import re
 import json
 import datetime
 
+import pytz
+import dateutil.parser
+
 from . import (utils, config)
 
 logger = utils.get_logger(__name__)
@@ -11,6 +14,10 @@ PRIO_NORMAL = 0
 PRIO_HIGH = 10
 
 _tasks_cache = {}
+
+
+def now():
+    return str(datetime.datetime.utcnow().replace(tzinfo=pytz.UTC))
 
 
 def _rebuild_cache():
@@ -97,7 +104,7 @@ class BaseTask:
         self._start = None
         self._end = None
         if time_function is None:
-            self._time_function = self.now
+            self._time_function = now
         else:
             self._time_function = time_function
         self._result = None
@@ -112,9 +119,6 @@ class BaseTask:
             p=self._path,
             r=self._result if self._done else '<unfinished>',
         )
-
-    def now(self):
-        return str(datetime.datetime.now())
 
     @classmethod
     def can_handle(self, magic_string):
@@ -178,6 +182,18 @@ class BaseTask:
         task.done = taskdict.get('completed', False)
         task._result = taskdict.get('result', None)
         return task
+
+    @property
+    def start_time(self):
+        if self._start is None:
+            return None
+        return dateutil.parser.parse(self._start)
+
+    @property
+    def end_time(self):
+        if self._end is None:
+            return None
+        return dateutil.parser.parse(self._end)
 
     @property
     def conf(self):

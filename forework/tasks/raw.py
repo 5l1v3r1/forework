@@ -14,6 +14,9 @@ class Raw(BaseTask):
     # This is a special task, and the MAGIC_PATTERN is actually ignored
     MAGIC_PATTERN = '.*'
 
+    def __init__(self, path, *args, **kwargs):
+        BaseTask.__init__(self, path, *args, **kwargs)
+
     def run(self):
         logger.info('Trying to identify {p} at offset {o}'.format(
             p=self._path,

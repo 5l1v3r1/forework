@@ -3,6 +3,7 @@ imagemounter
 pytsk3
 pytest
 pytest-cov
+dateutil
 Pillow
 pdfminer.six
 cairocffi

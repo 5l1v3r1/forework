@@ -86,7 +86,7 @@ class Scheduler(threading.Thread):
         lview = self._client.load_balanced_view()
         pending = set()
         tasks_to_retry_to_fetch = set()
-        self._start_time = datetime.datetime.now()
+        self._start_time = basetask.now()
         self._end_time = None
         while True:
             # stop if requested explicitly
@@ -155,7 +155,7 @@ class Scheduler(threading.Thread):
                         self.enqueue_from_json(jsontask)
                     logger.info('Result: {r!r}'.format(r=result))
 
-        self._end_time = datetime.datetime.now()
+        self._end_time = basetask.now()
 
         if self._client is not None:
             self._client.wait()
@@ -185,7 +185,7 @@ class Scheduler(threading.Thread):
         tasks = copy.copy(self._finished_tasks)
         if end_time is None:
             if start_time is not None:
-                end_time = datetime.datetime.now()
+                end_time = basetask.now()
         return results.Results(tasks, start_time, end_time)
 
 

@@ -1,5 +1,6 @@
 import os
 import json
+import datetime
 import subprocess
 import collections
 
@@ -21,7 +22,16 @@ class Results:
     def __init__(self, results=None, start=None, end=None):
         self._results = results or []
         self._size = None
+        if start is None:
+            start = None
+        elif not isinstance(start, datetime.datetime):
+            start = dateutil.parser.parse(start)
         self.start = start
+
+        if end is None:
+            end = None
+        elif not isinstance(end, datetime.datetime):
+            end = dateutil.parser.parse(end)
         self.end = end
 
     def __len__(self):
@@ -67,16 +77,16 @@ class Results:
         max_date = None
         yaxis = []
         labelsy = []
-        for item in [x.to_dict() for x in self._results]:
-            start = dateutil.parser.parse(item['start'])
-            end = dateutil.parser.parse(item['end'])
+        for item in self._results:
+            start = item.start_time
+            end = item.end_time
             yaxis.append((start, end))
             if min_date is None or start < min_date:
                 min_date = start
             if max_date is None or end > max_date:
                 max_date = end
             if add_y_labels:
-                path = item['path']
+                path = item.to_dict()['path']
                 if len(path) > 30:
                     path = path[:10] + '...' + path[-18:]
                 labelsy.append(path)
@@ -144,3 +154,22 @@ class Results:
                 top10=top10,
             )
         )
+
+    def in_range(self, start_time, end_time, assume_sorted=True):
+        '''
+        Return all the tasks that are entirely in a given time range.
+
+        Assume that the tasks are sorted (they should be), unless assume_sorted
+        is False
+        '''
+        if not isinstance(start_time, datetime.datetime):
+            start_time = dateutil.parser.parse(start_time)
+        if not isinstance(end_time, datetime.datetime):
+            end_time = dateutil.parser.parse(end_time)
+        ret = []
+        for item in self._results:
+            if item.start_time >= start_time and item.end_time <= end_time:
+                ret.append(item)
+            if assume_sorted and item.start > end_time:
+                break
+        return Results(ret, self.start, self.end)
