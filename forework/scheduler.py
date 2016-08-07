@@ -118,7 +118,7 @@ class Scheduler(threading.Thread):
                     priority_tasks.append(task)
                 else:
                     remaining_tasks.append(task)
-            prioritized_tasks = priority_tasks = remaining_tasks
+            prioritized_tasks = priority_tasks + remaining_tasks
 
             # add pending tasks to the pending task set used early in this loop
             amr = lview.map(lambda t: t.start(), prioritized_tasks)
