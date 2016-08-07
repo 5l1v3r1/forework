@@ -1,5 +1,6 @@
 import json
 import datetime
+import itertools
 import subprocess
 import collections
 
@@ -11,6 +12,7 @@ import matplotlib.dates as mdates
 
 DEFAULT_RESULTS_FILE = 'results.json'
 DEFAULT_PLOT_FILE = 'results.png'
+DEFAULT_DENSITY_PLOT_FILE = 'results_density.png'
 DEFAULT_EDITOR = 'vim'
 
 # List of tasks to skip size computation for
@@ -24,6 +26,15 @@ def bytes_to_human_readable_size(size):
         else:
             break
     return '{s:.3f} {u}'.format(s=size, u=unit)
+
+
+def grouper(n, iterable):
+    it = iter(iterable)
+    while True:
+       chunk = tuple(itertools.islice(it, n))
+       if not chunk:
+           return
+       yield chunk
 
 
 class Results:
@@ -144,6 +155,34 @@ class Results:
         plt.savefig(filename)
         plt.show()
         return filename
+
+    def density(self, what, every=None, percent=None,
+                filename=DEFAULT_DENSITY_PLOT_FILE):
+        if every is not None and percent is not None:
+            raise Exception('You must use either `every` or `percent`')
+        if every is None:
+            if percent is None:
+                percent = 10  # default percentage
+            chunklen = round(len(self._results) / 100 * float(percent))
+        else:
+            chunklen = every
+
+        samples = []
+        for chunk in grouper(chunklen, self._results):
+            samples.append(len([None for t in chunk if t._name == what]))
+
+        # generate bar chart
+        width = 1
+        fig, ax = plt.subplots()
+        ax.set_ylabel('Frequency of {w}'.format(w=what))
+        ax.set_title('Distribution of the frequency of {w}'.format(w=what))
+        ax.set_xticks(range(0, len(samples), width))
+        ax.set_xticklabels(['t{n}'.format(n=n) for n in range(len(samples))])
+
+        ax.bar(range(0, len(samples), width), samples, width * 0.8)
+        plt.savefig(filename)
+        plt.show()
+        return samples
 
     def edit(self, item_or_path_or_index, editor=DEFAULT_EDITOR):
         if type(item_or_path_or_index) == int:
