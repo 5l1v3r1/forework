@@ -1,10 +1,10 @@
-import os
 import json
 import datetime
 import subprocess
 import collections
 
 import dateutil
+import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 
@@ -71,44 +71,59 @@ class Results:
         if type(item) == int:
             # address by index
             return self._results[item]
+        elif type(item) == slice:
+            return Results(self._results[item], self.start, self.end)
         else:
             # address by name
             res = []
             for task in self._results:
                 if task._name == item:
                     res.append(task)
-            return res
+            return Results(res, self.start, self.end)
 
     def save(self, filename=DEFAULT_RESULTS_FILE):
         with open(filename, 'w') as fd:
             json.dump([x.to_dict() for x in self._results], fd)
         return filename
 
-    def plot(self, filename=DEFAULT_PLOT_FILE, add_y_labels=False):
+    def plot(self, filename=DEFAULT_PLOT_FILE, add_y_labels=True,
+             colours=True, exclude=None):
         min_date = None
         max_date = None
         yaxis = []
         labelsy = []
+        colour_by_task = {}
+        col_idx = 0
         for item in self._results:
+            if exclude and item._name in exclude:
+                continue
             start = item.start_time
             end = item.end_time
-            yaxis.append((start, end))
+            if colours:
+                if item._name not in colour_by_task:
+                    # TODO handle IndexError
+                    colour = list(matplotlib.colors.cnames.keys())[col_idx]
+                    colour_by_task[item._name] = colour
+                    col_idx += 1
+                else:
+                    colour = colour_by_task[item._name]
+            else:
+                colour = 'aliceblue'
+            yaxis.append((start, end, colour))
             if min_date is None or start < min_date:
                 min_date = start
             if max_date is None or end > max_date:
                 max_date = end
             if add_y_labels:
-                path = item.to_dict()['path']
-                if len(path) > 30:
-                    path = path[:10] + '...' + path[-18:]
-                labelsy.append(path)
+                labelsy.append(item._name)
 
         fig = plt.figure(figsize=(30, 60))
         ax = fig.add_subplot(111)
 
-        for idx, (start, end) in enumerate(yaxis):
+        for idx, (start, end, colour) in enumerate(yaxis):
             start, end = mdates.date2num((start, end))
-            ax.barh(idx + 0.2, end - start, height=0.8, left=start)
+            ax.barh(idx + 0.2, end - start, height=0.8, left=start,
+                    color=matplotlib.colors.cnames[colour])
 
         # set Y labels (task names) properties
         plt.setp(
