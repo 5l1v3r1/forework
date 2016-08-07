@@ -170,6 +170,6 @@ class Results:
         for item in self._results:
             if item.start_time >= start_time and item.end_time <= end_time:
                 ret.append(item)
-            if assume_sorted and item.start > end_time:
+            if assume_sorted and item.start_time > end_time:
                 break
         return Results(ret, self.start, self.end)
