@@ -13,6 +13,18 @@ DEFAULT_RESULTS_FILE = 'results.json'
 DEFAULT_PLOT_FILE = 'results.png'
 DEFAULT_EDITOR = 'vim'
 
+# List of tasks to skip size computation for
+CONTAINERS = ['Image', 'DirectoryScanner']
+
+
+def bytes_to_human_readable_size(size):
+    for unit in ('B', 'KB', 'MB', 'GB', 'TB'):
+        if size / 1024. >= 1:
+            size /= 1024.
+        else:
+            break
+    return '{s:.3f} {u}'.format(s=size, u=unit)
+
 
 class Results:
     '''
@@ -47,8 +59,8 @@ class Results:
         if self._size is None:
             size = 0
             for task in self._results:
-                if os.path.isfile(task._path):
-                    size += os.stat(task._path).st_size
+                if task.__class__.__name__ not in CONTAINERS:
+                    size += task._size
             self._size = size
         return self._size
 
@@ -139,18 +151,20 @@ class Results:
                 t=task,
                 f=frequency,
             )
+        hrsize = bytes_to_human_readable_size(self.size())
         print(
             'Start time       : {start}\n'
             'End time         : {end}\n'
             'Duration         : {duration}\n'
             'Analyzed objects : {nobj}\n'
-            'Total size       : {size} bytes\n'
+            'Total size       : {size} bytes ({hrsize})\n'
             'Top file types   : \n{top10}\n'.format(
                 start=self.start,
                 end=self.end,
                 duration=duration,
                 nobj=len(self._results),
                 size=self.size(),
+                hrsize=hrsize,
                 top10=top10,
             )
         )
