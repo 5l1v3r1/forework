@@ -19,7 +19,7 @@ class Image(BaseTask):
 
     def run(self):
         logger.info('Parsing image {p}, ignoring offset'.format(p=self._path))
-        image = imagemounter.ImageParser([self._path])
+        image = imagemounter.ImageParser([self._path], volume_detector='parted')
         try:
             volumes = list(image.init(swallow_exceptions=False))
         except Exception as exc:
