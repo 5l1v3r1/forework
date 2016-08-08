@@ -59,7 +59,7 @@ class PDFFile(BaseTask):
                 subprocess.check_call(['pdfimages', '-j', self._path, prefix])
                 extracted_images = os.listdir(outdir)
                 self.add_next_task({
-                    'name': DirectoryScanner.__name__,
+                    'name': [DirectoryScanner.__name__],
                     'path': outdir,
                 })
 

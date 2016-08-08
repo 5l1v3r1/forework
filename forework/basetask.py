@@ -1,3 +1,4 @@
+import os
 import re
 import json
 import datetime
@@ -112,6 +113,10 @@ class BaseTask:
         self._priority = priority
         self._next_tasks = []
         self._config = config
+        if os.path.isfile(path):
+            self._size = os.stat(path).st_size
+        else:
+            self._size = 0
 
     def __repr__(self):
         return '<{cls}(path={p!r}, result={r!r})>'.format(
