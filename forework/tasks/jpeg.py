@@ -22,7 +22,7 @@ class JpegFile(BaseTask):
         try:
             tags = image._exiftags()
         except AttributeError:
-            msg = 'Warning: no EXIF tags found for {f!r}'.format(r=self._path)
+            msg = 'Warning: no EXIF tags found for {f!r}'.format(f=self._path)
             self.add_warnings(msg)
             logger.warning(msg)
         image.close()
