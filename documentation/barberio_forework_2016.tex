@@ -14,6 +14,12 @@
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Also great article on how to write a scientific paper, at
+% http://abacus.bates.edu/~ganderso/biology/resources/writing/HTWsections.html
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
 %----------------------------------------------------------------------------------------
 %	PACKAGES AND OTHER DOCUMENT CONFIGURATIONS
 %----------------------------------------------------------------------------------------
@@ -27,6 +33,9 @@
 \linespread{1.05} % Line spacing - Palatino needs more space between lines
 \usepackage{microtype} % Slightly tweak font spacing for aesthetics
 
+\usepackage{graphicx}
+\graphicspath{{images/}}
+
 \usepackage[hmarginratio=1:1,top=32mm,columnsep=20pt]{geometry} % Document margins
 \usepackage{multicol} % Used for the two-column layout of the document
 \usepackage[hang, small,labelfont=bf,up,textfont=it,up]{caption} % Custom captions under/above floats in tables or figures
@@ -36,6 +45,8 @@
 
 \usepackage{lettrine} % The lettrine is the first enlarged letter at the beginning of the text
 \usepackage{paralist} % Used for the compactitem environment which makes bullet points with less space between them
+
+\setcounter{secnumdepth}{3}
 
 \usepackage{abstract} % Allows abstract customization
 \renewcommand{\abstractnamefont}{\normalfont\bfseries} % Set the "Abstract" text to bold
@@ -51,18 +62,19 @@
 \pagestyle{fancy} % All pages have headers and footers
 \fancyhead{} % Blank out the default header
 \fancyfoot{} % Blank out the default footer
-%\fancyhead[C]{ForeWork: a distributed framework for automated extraction of triaged forensic artifacts $\bullet$ August 2016} % Custom header text
+%\fancyhead[C]{Forework: a distributed framework for automated extraction of triaged forensic artifacts $\bullet$ August 2016} % Custom header text
 \fancyfoot[RO,LE]{\thepage} % Custom footer text
 
 %----------------------------------------------------------------------------------------
 %	TITLE SECTION
 %----------------------------------------------------------------------------------------
 
-\title{\vspace{-15mm}\fontsize{24pt}{10pt}\selectfont\textbf{ForeWork,
-    a distributed real-time framework for automated extraction of
-    triaged forensic artifacts}} % Article title
+% Article title
+\title{\vspace{-15mm}\fontsize{24pt}{10pt}\selectfont\textbf{Triaging forensic
+    artifacts with a real-time, distributed approach}}
+
 \author{\large
-\textsc{Andrea Barberio}\thanks{A thank you or further information}\\[2mm] % Your name
+\textsc{Andrea Barberio}\\[2mm] % Your name
 \normalsize University College Dublin \\ % Your institution
 \normalsize
     \{
@@ -92,41 +104,33 @@
 % results, interpretation and conclusions
 \noindent
     % intro
-    This paper describes ForeWork, a novel software framework for
+    This paper introduces Forework, a novel software framework for
     simplifying and automating the extraction of forensic artifacts in a
-    distributed and efficient manner.
+    distributed manner.
     % question/purpose
     Modern investigations can involve large amounts of data, often requiring
-    long time in order to be analyzed.
-    Digital evidence shows a bigger impact if it is found within the first few
-    days since the start of the trial.
+    long processing time.
+    Digital evidence shows its biggest impact if found within the first few
+    days from the start of the trial.
 %    This means that an investigation
 %    involving a large amount of data may result less effective if the most
 %    important evidence is not obtained in time.
     The existing distributed forensic frameworks focus on extracting all the artifacts
-    in the shortest time span possible, but in no special order.
-    ForeWork instead puts more emphasis on extracting the artifacts that the
-    investigator considers more important for the case.
+    in the shortest time span possible, generally using a map-reduce approach.
+    This means that the first results are only available after each Hadoop
+    ``pass'', and that they are provided in no special order.
+    Forework instead puts more emphasis on extracting the artifacts that the
+    investigator considers more important for the case, providing the results
+    as soon as they arrive.
     % design and methods
     To achieve this, we use a parallel, distributed, horizontally
-    scalable, stream-processing  approach, that is not found in other forensic
+    scalable, stream-processing approach, that is not found in other forensic
     softwares.
-%    % other main goals
-%    % This paragraph maybe can be removed
-%    \textbf{Other main goals of ForeWork are: interactivity (the
-%    forensic examiner can observe any artifact in detail, and conduct in-depth manual
-%    analysis), ease of extensibility (no special programming skill is required
-%    to implement new analysis plugins), ease of adoption (it is written in an
-%    approachable and widespread language, Python 3, that makes adoption and
-%    contribution easier) and friendly licensing (it is open source, under the
-%    permissive BSD licence, suitable for both the open source and the commercial
-%    worlds).
-%    }
     % findings and conclusions
-    In this paper we show how the distributed, stream processing approach,
-    together with prioritizing the extraction of the most important artifacts,
-    can help maximize the chances of obtaining useful forensic evidence in
-    shorter time, compared to a regular distributed batch-processing framework.
+    In this paper we will see how the stream processing approach, joined with
+    the prioritization of the most important artifacts, can help maximize the
+    chances of obtaining useful forensic evidence in shorter time, compared to
+    an equivalent batch-processing framework.
 % \noindent \lipsum[1] % Dummy abstract text
 
 \end{abstract}
@@ -139,59 +143,548 @@
 
 \section{Introduction}
 
-\lettrine[nindent=0em,lines=3]{L} orem ipsum dolor sit amet, consectetur adipiscing elit.
-\lipsum[2-3] % Dummy text
+%\lettrine[nindent=0em,lines=3]{L} orem ipsum dolor sit amet, consectetur adipiscing elit.
+%\lipsum[2-3] % Dummy text
+
+\lettrine[nindent=0em,lines=3]{D}igital forensic investigations in the last decade
+    have seen a dramatic increase of the amount of data to analyze. This is
+    mostly due to the proliferation of low cost, high-capacity storage supports:
+    from cheap hard drives that can store several terabytes of data, to
+    high-end mobile devices capable of tens or even hundreds of gigabytes.
+    Additionally, cloud services can add virtually unlimited storage space for
+    every user over the internet, from pure storage solutions (e.g. Dropbox,
+    Google Drive, Amazon S3) to online email services (e.g. GMail, Outlook.com)
+    until social networks storing pictures, messages and videos (Facebook,
+    Twitter). Last but not least, the so-called Internet of Things will add even
+    more data to the equation.
+    As a consequence of this, a single investigation can involve tens or even
+    hundreds of terabytes of data that an investigator has to make sense of.
+    A multi-terabyte forensic analysis with the current instruments can take
+    a time longer than what an investigator can realistically invest for a
+    case.
+
+    % storage growth
+    The rate of growth of the data to analyze per investigation has proved to be
+    faster than the
+    ability of forensic systems to deal with large scale investigations, as
+    predicted in 2010 by Simson~L.~Garfinkel~\cite{garfinkel2010}. In this
+    paper, Garfinkel not only predicted the crisis that digital forensics would
+    have faced in the coming years, but he also suggested a series of approaches
+    aimed at addressing it.
+    Among these, he briefly mentioned how a triage-oriented approach
+    could reduce the pressure in large scale investigations by presenting
+    critical evidence as soon as possible to the investigator.
+
+    % triage-oriented approach
+    Using a triage-oriented approach is not new to the digital forensics world.
+    This has been already explored by Garfinkel~\cite{garfinkel2013},
+    Roussev~\cite{roussev2013}, and Gielen~\cite{gielen2014}, but all
+    these attempts are aimed at identifying the \emph{most important devices},
+    rather than the \emph{most important artifacts}.
+    Additionally, no work is currently known to address this problem on a large
+    scale.
+
+    There are several systems able to do large scale digital forensics. Among
+    the most important: The Sleuth Kit Hadoop~\cite{tskhadoop}, OCFA~\cite{ocfa},
+    Hansken~\cite{vanbeek2015}, Distributed FTK~\cite{ftk} and Encase
+    Processor Manager~\cite{encaseprocessormanager}. All these systems are peculiar
+    in a way, but their common goal is to extract as much information as possible
+    in the shortest amount of time. Let's see briefly what are their strengths
+    and their weaknesses with regards to large scale analysis.
+
+    \subsection*{The Sleuth Kit Hadoop}
+    The Sleuth Kit (TSK from now on) is a
+    well-known forensic framework. The large scale
+    capabilities came at a later stage, in an attempt to exploit the power of
+    the map-reduce paradigm without rewriting it. In fact, this is not really an
+    extension of TSK, rather a way to integrate TSK in a Hadoop environment.
+    TSK is a single-threaded application, hence in order to scale out on an
+    Hadoop cluster it is necessary to split the work into multiple independent
+    parts. Therefore TSK Hadoop is not a distributed forensic framework in the
+    strict sense.
+    Additionally, TSK Hadoop has never exited the status of prototype, and its
+    development has been abandoned in 2012. It is relatively complex to set up,
+    and requires an initial amount of preparation work to
+    split the analysis into independent workers. For this reason, TSK Hadoop is
+    not able to balance the workload across the workers.
+
+    \subsection*{OCFA}
+    OCFA, acronym for Open Computer Forensics Architecture, is a free,
+    open-source computer forensics framework focused on the analysis of large
+    amounts of forensic artifacts. OCFA has a modular, plugin-oriented
+    architecture that makes it extensible, and is able to scale on multiple
+    hosts. On the other side, OCFA was not particularly easy to extend because
+    of the high entry bar that the C++ language has, and, as its authors
+    say~\cite{ocfa}, its scalability is untested. Additionally the project has
+    been abandoned and is not actively maintained anymore.
+
+    \subsection*{Hansken}
+    Hansken is a modular, distributed forensic analysis framework built on top
+    of Hadoop. The processing model is batch-oriented, since Hadoop is an
+    implementation of the map-reduce model. This means that the system is able
+    to scale
+    horizontally thanks to Hadoop and HDFS (the Hadoop File System), but on the
+    other side this means that Hansken must go through multiple passes over the
+    data in order to produce results. As a consequence, the forensic artifacts
+    are actually usable only at the end of the analysis process, which is not
+    suitable for real-time analysis. Hansken is not publicly available, and for
+    this reason it cannot be vetted by the scientific community.
+
+    \subsection*{Distributed FTK and EnCase Processor Manager}
+    These two products are de-facto standards in the digital forensics industry.
+    These are commercial, closed-source products and there is no public knowledge
+    of their scalability models. However they do not offer real-time analysis
+    capabilities, which is the central argument in this paper.
+
+    \subsection*{Forework}
+    We have just seen how other forensic analysis systems operate with regards
+    to large scale investigations. All these systems have in common the ability
+    to process large amounts of data in a parallel and distributed fashion.
+    However, none of the above systems is able to do real-time analysis. In this
+    paper, we propose a modern approach to this problem, centered on the ability
+    to provide real-time analysis of the forensic artifacts, in order to
+    prioritize what is more important for each investigation.
+    We also present Forework, a proof-of-concept implementation of this
+    proposal, that is available to the public~\cite{forework}, with a permissive
+    license, the 2-clause~BSD~\cite{bsdlicense}.
+
+    Forework has four main goals:
+    \begin{itemize}
+        \item be parallel
+        \item be distributed
+        \item prioritize and do real-time analysis
+        \item be interactive
+    \end{itemize}
+
+    Each goal has been pursued by adopting, whereas possible, industry and
+    scientific-community de-facto standards. We will see more in detail how
+    every goal has been approached in Section~\ref{methods}.
 
 
 %------------------------------------------------
 
-\section{Methods}
+\section{Architecture}
 
-Maecenas sed ultricies felis. Sed imperdiet dictum arcu a egestas. 
-\begin{compactitem}
-\item Donec dolor arcu, rutrum id molestie in, viverra sed diam
-\item Curabitur feugiat
-\item turpis sed auctor facilisis
-\item arcu eros accumsan lorem, at posuere mi diam sit amet tortor
-\item Fusce fermentum, mi sit amet euismod rutrum
-\item sem lorem molestie diam, iaculis aliquet sapien tortor non nisi
-\item Pellentesque bibendum pretium aliquet
-\end{compactitem}
-\lipsum[4] % Dummy text
+Forework aims at being modular and extensible. Its design is loosely inspired by
+modern operating system kernels, showing a vertical, multi-layered architecture,
+together with an horizontal separation of components. The vertical multi-layering
+makes possible to have a set of interfaces that are independent from the actual
+implementation, while the horizontal separation let us further modularize each
+component within the same layer without affecting other parts of the layer. A
+diagram of the architecture is shown in Figure~\ref{fig:forework_architecture}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=7cm]{forework_architecture}
+    \caption{Architectural overview of Forework}
+    \label{fig:forework_architecture}
+\end{figure}
+
+\subsection*{Scheduling}
+
+At the core of the architecture there is the scheduling layer. The scheduler is
+responsible for coordinating the work, and is composed by a coordinator and a set
+of plug-ins.
+The coordinator, as the name suggests, is the central hub for the analysis.
+It will maintain track of the tasks, assign them to a worker, and get the
+results back. For every finished task, it is also responsible to decide what to
+do next (for example assign a new task to a worker), and to balance the load.
+The scheduler is also responsible for holding the
+results of the analysis, and to access them at any stage.
+
+The plug-ins are used to extend the functionalities of the framework. Every
+plug-in can implement one or more tasks, where a task is an unit of work that
+can be done on any given file or directory. For example, a task can implement
+the business logic to analyze a PDF file.
+
+While the scheduler decides how to allocate work and how to make the results
+available to the investigator, the tasks make up for the actual ability of the
+framework to find evidence.
+The more information a task can find in a forensic artifact, the better the
+accuracy of the extraction will be.
+
+There is however a trade-off we have to consider when implementing a task,
+between the amount of information we want to extract, and the time we can spend
+into it. For example, when analyzing a PDF file, we may want to extract all the
+pictures that it contains, and run in-depth analysis on all of them. This can be
+useful in an investigation where we care especially for pictures, but it could be
+undesired if we are particularly looking for text documents. Given that every
+investigation is different in nature and requirements, we have designed the
+tasks in a way that lets us instruct what to do exactly, and at what level
+of depth we want to analyze the data. For example, we can tell the PDF task to
+only look for specific text, rather than for pictures.
+
+When a task has found all the information it has been instructed to look for, it
+will return a number of information, including:
+\begin{itemize}
+    \item when the analysis started and ended
+    \item what it has found in the object under analysis
+    \item any observed oddity or other warning (e.g. a partition entry that does
+        not match the actual file system)
+    \item what to tell the scheduler to do next (e.g. analyze the pictures found
+        in a PDF)
+\end{itemize}
+
+
+\subsection*{Interface}
+
+On top of the scheduling layer we have the interface layer. This layer is
+concerned with letting the investigator interact with the scheduler, for example
+starting an analysis or retrieving the results, either in real-time or when the
+analysis is completed.
+
+There is only one interface currently implemented in Forework, the shell.
+However, since the Forework scheduler is designed as a library, it is possible
+to implement any type of interface on top of it.
+
+The shell is substantially a command line interface based on top of
+IPython~\cite{ipython} (Interactive Python), from which the shell inherits most
+of its features. The Forework shell adds several objects to the IPython context,
+the two most important of which are the scheduler and the running configuration.
+Among the other objects accessible from the shell, there are all the analysis
+tasks, so that the investigator can analyze individual artifacts without going
+through the entire investigation flow.
+
+\subsection*{Storage and processing backends}
+
+The bottom layer of the architecture is divided into two main components: the
+storage backend and the processing backend.
+The storage backend is made by a common interface, and a set of one or more
+storage implementations. The interface acts as a wrapper on top of the backend
+implementations in a way that lets the investigator replace the storage backend
+depending on the needs.
+Examples of storage backends are NFS, MySQL, local file system, or even a more
+forensic-oriented solutions such as MattockFS~\cite{mattockfs}. Currently
+Forework only supports NFS and local filesystem. The choice of
+the storage backend can impact significantly on the performances of the
+analysis. For example, a heavy I/O on a network-based file system could become
+more expensive in terms of time than running tasks in an unbalanced way.
+We will discuss this further in Section~\ref{results}.
+
+Similarly to the storage backends, the investigator can choose among multiple
+processing backends. The processing backend is the engine that the scheduler
+uses to distribute the tasks on multiple cores or on multiple machines. We will
+see in Section~\ref{methods} that Forework currently only supports IPyParallel
+as processing backend, but that its design takes into account the use of
+different subsystems, such as Celery~\cite{celery}.
+
+\section{Methods}
+\label{methods}
+
+\subsection*{Parallelism}
+A modern forensic analysis system should aim to execute as much analysis tasks
+as possible at the same time, in order to improve its processing speed. It is
+evident that using all the computational resources of a computer system can
+yield better performances than using only part of it.
+However, this is only possible if the artifacts to analyze are independent from
+each other, or, in other words, if it is possible to execute the analysis of any
+two forensic artifacts on any independent execution flow, and obtain always the
+same results.
+Forensic artifacts are generally independent: for example, two disk images are
+not strictly related in the extraction phase. They may be related when
+correlating the results, but not at the extraction phase.
+This statement is true in general, but we will see in the next subsection that,
+when it comes to distributed processing, we have to take into account some degree
+of correlation in order to address performance issues.
+
+In Forework, parallelism is achieved by exploiting the multi-core nature of
+modern CPUs. Every analysis task is run on an independent execution flow, in a
+multi-processing fashion. In this respect, we have used a parallel execution
+framework that is a de-facto standard in the scientific community,
+IPyParallel~\cite{ipyparallel}. IPyParallel, as its name suggests, offers a
+number of facilities to exploit the system resources through parallel computing.
+Being built on top of a popular programming language, Python, IPyParallel also
+provides an interesting alternative to other similar frameworks thar are based
+on languages with a higher entry bar, such as C++.
+
+Forework relies on IPyParallel to make use of multiple cores, and as such its
+efficiency is influenced by the ability of IPyParallel to efficiently use the
+available resources. However, as already mentioned, Forework is a
+proof-of-concept framework and is not meant to prove to be faster than its
+competitors. Rather, it is meant to show the potential of real-time
+forensic analysis. We will go in further details in the section about real-time
+analysis.
+
+\subsection*{Distributed processing}
+
+As we have discussed, a modern forensic framework should aim at using
+efficiently the available resources. Computational resources are not
+confined anymore to isolated computers, but rather they can be distributed
+across multiple interconnected machines.
+The immediate benefit of distributed computing is that it permits to dedicate
+more computing power to a single task. This, however, increases the complexity
+of the software, as distributed computing brings changes to several fundamental
+assumptions, such as the latency and the throughput of the I/O subsystem.
+
+Similarly to what seen for the parallel processing, Forework relies on IPyParallel
+to enable distributed processing. IPyParallel offers a number of facilities to
+transparently work over a set of CPUs on a single machine, or on a set of nodes
+over the network. It does not, however, address issues such as network latency,
+reliability, retry logics, and storage locality.
+
+IPyParallel offers a distributed, load-balanced view of the computational nodes.
+This means that it will automatically decide which node has to run a task
+depending on its load. The load balancing logics can also be customized to
+address different use cases.
+
+
+\subsection*{Prioritization and real-time analysis}
+\label{ssec:section_prioritization}
+Real-time processing is a key goal in our proposal. Parallelism and
+distributed processing are important factors towards the goal of efficiency, but
+it is with real-time processing that we can enable triaging and prioritization.
+
+Triaging and prioritizing tasks means that an investigator can instruct the
+forensic framework to analyze first what he considers more important for an
+investigation.
+In this regard, we have made every investigation configurable via a text file
+based on the YAML format. Such file will contain the information necessary to
+Forework to make decisions on what to analyze first, and the level of depth that
+each task has to run its analysis at.
+There are several possible configuration directives. The most important are
+the entry point of the investigation, that is the file, disk dump or directory
+from which the analys has to start, a list of plugins that the framework has to
+prioritize on (e.g. we may want to extract and analyze pictures first), and a
+per-task configuration that will instruct the worker on what to look for in
+the file or directory it is analyzing.
+
+The impact of the prioritization is evident: the investigator can see first what
+matters to an investigation. Together with the ability to view the results
+in real-time, it lets the investigator act on the evidence before the end of
+the analysis, as soon as it is ready. For comparison, none of the forensic systems
+described in the introduction has this ability.
+
+IPyParallel does not support real-time processing natively. For our purposes, we
+are using it in a way that allows asynchronous, real-time scheduling.
+We substantially iterate over a task queue until all the processing is completed.
+When a task result arrives from the workers to the scheduler, it is readily usable
+by the investigator. There is no need to wait until the end of the processing.
+
+Every result can yield new tasks, that are triaged and sorted according to the
+configuration, and reinjected into IPyParallel's load balanced view.
+
+\subsection*{Interactivity}
+
+There are cases when automatic analysis is not enough. The system may have
+bugs, the tasks may have not extracted what we were looking for, or we may
+simply want to have a closer look at the files.
+
+We have several options: we may re-run the analysis only on the specific files,
+we may analyze them with other tools, or we may work interactively and analyze
+them through the facilities offered by Forework. Interactivity enables all of
+the scenarios above.
+
+Forework is interactive in the sense that it lets the investigator operate
+directly on the scheduler, or, more granularly, even on every single task. It is
+possible to reproduce a whole distributed analysis, or to analyze single artifacts
+locally. To do this, Forework exploits the interactivity offered by
+IPython. When Forework is run, it will load an IPython shell, and will load in its
+context the configuration of
+the current investigation, an object to interact with the scheduler and with the
+results of the analysis. It will also expose the interface of every processing
+task, thus letting the investigator reproduce locally the analysis of a file or
+directory as if it was run by the scheduler.
+Forework can also present the investigator with several statistics of the
+analysis, such as the running time, the number of analyzed artifacts, the total
+size of all the analyzed artifacts, and the the most frequent types of files.
+
+%Maecenas sed ultricies felis. Sed imperdiet dictum arcu a egestas. 
+%\begin{compactitem}
+%\item Donec dolor arcu, rutrum id molestie in, viverra sed diam
+%\item Curabitur feugiat
+%\item turpis sed auctor facilisis
+%\item arcu eros accumsan lorem, at posuere mi diam sit amet tortor
+%\item Fusce fermentum, mi sit amet euismod rutrum
+%\item sem lorem molestie diam, iaculis aliquet sapien tortor non nisi
+%\item Pellentesque bibendum pretium aliquet
+%\end{compactitem}
+%\lipsum[4] % Dummy text
 
 %------------------------------------------------
 
 \section{Results}
+\label{results}
+
+% testing methodology
+We have conducted testing on a set of forensic images. Some of them are from
+NIST's Digital Forensics Tool Testing Images project~\cite{dftt} (DFTT from now
+on). Specifically:
+
+\begin{itemize}
+    \item the NTFS Keyword Search Test~\cite{dftt03}, from NIST's DFTT
+    \item the JPEG Search Test~\cite{dftt08}, from NIST's DFTT
+    \item JpegSort Test, a specially-constructed NTFS image that contains
+        only PDFs, JPEGs and ZIP files
+\end{itemize}
+
+The NTFS Keywork Search Test image is used to demonstrate the ability to locate
+and analyze text files. The JPEG Search Test image is used to demonstrate the
+ability to locate images, with the exception of carving. The JpegSort test is an
+image constructed ad-hoc to only contain JPEG, ZIP and PDF files, used to
+demonstrate the ability to triage and prioritize. Several ZIP and PDF files in
+this image contain JPEG images, to demonstrate the ability to recurse correctly
+inside containers.
+
+We have explicitly excluded images requiring carving abilities since, as
+discussed earlier in this paper, carving in Forework is not implemented yet at
+the moment of writing.
+
+The results that we will see come from the automated analysis carried out by
+Forework. No manual intervention has been done during the investigation. The
+focus of this section is on the prioritization rather than on the time required
+to extract the data, so we will not discuss performances here.
+
+For each forensic image we have run a full automated analysis, with a
+per-investigation configuration. Each configuration was pointing to the
+corresponding path to the forensic image.
+
+Our tests are focused on the extraction of JPEG files.
+The ZIP task has been configured to extract and analyze all of the ZIP file
+contents, and the PDF task has been configured to extract all the pictures.
+
+We have measured the time lines of the extraction process under two different
+conditions: with prioritization on JPEG files, and without prioritization.
+When run with the prioritization enabled, the Forework scheduler will sort the
+new tasks in high-priority and low-priority. If they are JPEG files, or one of
+the designated containers (for our tests, we have chosen ZIP and PDF files),
+such tasks are allocated to the workers with higher priority, before any other
+task.
+When run without prioritizationi, instead, every task will be treated equally.
+
+An example of running time is shown in Figure~\ref{fig:forework_execution}.
+On the X axis we have the time, on the Y axis we have a bar for each separate
+task, or, in other words, for each file or directory that we have analyzed. The
+files are sorted top-down, from the earliest to the latest that have been
+analyzed.
+Every horizontal bar represents a single file or directory, and the start and end
+time of analysis of such object. This whole graph highlights how Forework makes
+use of the time with every newly discovered artifact.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=8cm]{forework_execution}
+    \caption{Timeline of the execution of Forework on the JpegSort forensic image}
+    \label{fig:forework_execution}
+\end{figure}
+
+We can see from this chart that the execution is parallel and sparse. Every new
+artifact is analyzed as soon as it is identified, and is run on different
+execution flows. Every colour represent a file type. In red we have disk images,
+in light blue JPEG files, and in light orange PDF files.
+
+The prioritization is successful if the frequency of artifacts is higher in
+correspondence of lower time values, when compared to the same analysis without
+prioritization. To measure the
+proximity of the extracion of JPEG artifacts to lower time values, we used the
+\emph{frequency} at which this file type appeared in a given range. For our
+measurements, it is more useful to compute the frequency in a range of extracted
+objects, rather than in a time range. In other words, we measure the frequency as
+the number of times that a JPEG artifact is found every N artifacts.
+
+Figure~\ref{fig:forework_frequency_noprio} shows the frequency of JPEG files
+found in an analysis that involved 5000 artifacts, without prioritization.
+We have divided the artifacts in 10 ranges, in groups of 500. The exact
+distribution that we obtained is:
+
+[38, 94, 126, 181, 2, 15, 53, 16, 0, 0]
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=8cm]{forework_frequency_noprio}
+    \caption{Frequency of the discovery of JPEG files without the use of prioritization}
+    \label{fig:forework_frequency_noprio}
+\end{figure}
+
+Let's observe the total number of artifacts between T0 and an arbitrary time
+between T1 and T9:
 
 \begin{table}[H]
-\caption{Example table}
+\caption{Extracted JPEG artifacts in T0-Tn without prioritization}
 \centering
 \begin{tabular}{llr}
 \toprule
-\multicolumn{2}{c}{Name} \\
-\cmidrule(r){1-2}
-First name & Last Name & Grade \\
+Range & \# of JPEG artifacts \\
 \midrule
-John & Doe & $7.5$ \\
-Richard & Miles & $2$ \\
+T0 & 38 \\
+T1 & 132 \\
+T2 & 258 \\
+T3 & 439 \\
+T4 & 441 \\
+T5 & 456 \\
+T6 & 509 \\
+T7 & 525 \\
+T8 & 525 \\
+T9 & 525 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\lipsum[5] % Dummy text
+Figure~\ref{fig:forework_frequency} shows the frequency of JPEG artifacts for the
+same analysis, but this time using prioritization. The exact distribution that
+we obtained with prioritization is:
 
-\begin{equation}
-\label{eq:emc}
-e = mc^2
-\end{equation}
+[39, 134, 201, 65, 0, 2, 68, 13, 3, 0]
 
-\lipsum[6] % Dummy text
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=8cm]{forework_frequency}
+    \caption{Frequency of the discovery of JPEG files with the use of prioritization}
+    \label{fig:forework_frequency}
+\end{figure}
+
+Let's observe the total number of artifacts between T0 and any arbitrary range,
+as we did for the previous example, and combine them in a single table:
+
+\begin{table}[H]
+\caption{Comparison of extracted JPEG artifacts in T0-Tn with and without prioritization}
+\centering
+\begin{tabular}{llr}
+\toprule
+\multicolumn{3}{c}{Method} \\
+\cmidrule(r){2-3}
+Range & Prio & No Prio \\
+\midrule
+
+T0 & 38  & 39 \\
+T1 & 132 & 173 \\
+T2 & 258 & 374 \\
+T3 & 439 & 439 \\
+T4 & 441 & 439 \\
+T5 & 456 & 441 \\
+T6 & 509 & 509 \\
+T7 & 525 & 522 \\
+T8 & 525 & 525 \\
+T9 & 525 & 525 \\
+
+\bottomrule
+\end{tabular}
+\end{table}
+
+We can observe from this table that, while at the end of the processing both
+methods will have extracted all the JPEG artifacts, in the first four ranges the
+prioritization method has found more artifacts than its non-prioritizing
+counterpart.
+
+
+% \lipsum[5] % Dummy text
+%
+% \begin{equation}
+% \label{eq:emc}
+% e = mc^2
+% \end{equation}
+%
+% \lipsum[6] % Dummy text
 
 %------------------------------------------------
 
 \section{Discussion}
 
 \subsection{Subsection One}
+
+TODO interpret results
+TODO explain limitations (no carving, no chain of evidence, no events timeline)
+TODO future work
 
 \lipsum[7] % Dummy text
 
@@ -205,11 +698,84 @@ e = mc^2
 
 \begin{thebibliography}{99} % Bibliography - this is intentionally simple in this template
 
+\bibitem{forework}
+    A. Barberio,
+    \href{https://github.com/insomniacslk/forework}{https://github.com/insomniacslk/forework},
+    August 2016
+
+\bibitem{bsdlicense}
+    The BSD 2-Clause license,
+    \href{https://opensource.org/licenses/BSD-2-Clause}{https://opensource.org/licenses/BSD-2-Clause}
+
 \bibitem{vanbeek2015}
     H.M.A van Beek, E.J. van Eijk, R.B. van Baar, M. Ugen, J.N.C. Bodde, A.J. Siemelink,
     \emph{Digital forensics as a service: Game On},
     Netherlands Forensic Institute,
     December 2015
+
+\bibitem{garfinkel2010}
+    Simson L. Garfinkel,
+    \emph{Digital forensics research: The next 10 years},
+    Naval Postgraduate School, Monterey, US,
+    2010
+
+\bibitem{garfinkel2013}
+    Simson L. Garfinkel,
+    \emph{Digital Forensics Innovation: Searching a Terabyte of Data in 10 minutes},
+    \href{http://simson.net/ref/2013/2013-01-07\%20Forensics\%20Innovation.pdf}{http://simson.net/ref/2013/2013-01-07\%20Forensics\%20Innovation.pdf},
+    Naval Postgraduate School, Monterey, US,
+    January 2013
+
+\bibitem{gielen2014}
+    Matthijs Gielen,
+    \emph{Prioritizing Computer Forensics Using Triage Techniques},
+    University of Twente, Netherlands,
+    July 2014
+
+\bibitem{roussev2013}
+    Vassil Roussev, Candice Quates, Robert Martell,
+    \emph{Real-time digital forensics and triage},
+    University of New Orleans, US,
+    March 2013
+
+\bibitem{ftk}
+    FTK,
+    \href{http://accessdata.com/solutions/digital-forensics/forensic-toolkit-ftk?/solutions/digital-forensics/ftk}{http://accessdata.com/solutions/digital-forensics/forensic-toolkit-ftk?/solutions/digital-forensics/ftk}
+
+\bibitem{encaseprocessormanager}
+    EnCase Processor Manager,
+    \href{http://encase-forensic-blog.guidancesoftware.com/2013/09/encase-evidence-processor-manager.html}{http://encase-forensic-blog.guidancesoftware.com/2013/09/encase-evidence-processor-manager.html}
+
+\bibitem{ocfa}
+    Oscar Vermaas, Joep Simons, Rob Meijer,
+    \emph{Open Computer Forensic Architecture a Way to Process Terabytes of Forensic Disk Images},
+    December 2009
+
+\bibitem{tskhadoop}
+    The Sleuth Kit Hadoop,
+    \href{http://www.sleuthkit.org/tsk\_hadoop/}{http://www.sleuthkit.org/tsk\_hadoop/}
+
+\bibitem{ipyparallel}
+    IPyParallel,
+    \href{https://ipyparallel.readthedocs.io/en/latest/}{https://ipyparallel.readthedocs.io/en/latest/}
+
+\bibitem{ipython}
+    IPython,
+    \href{https://ipython.org/}{https://ipython.org/}
+
+\bibitem{mattockfs}
+    MattockFS Computer Forensics Filesystem,
+    Rob J. Meijer,
+    \href{http://forensicswiki.org/wiki/MattockFS}{http://forensicswiki.org/wiki/MattockFS}
+
+\bibitem{celery}
+    Celery, a distributed task queue,
+    \href{http://www.celeryproject.org/}{http://www.celeryproject.org/}
+
+\bibitem{dftt}
+    Digital Forensics Tool Testing Images project,
+    NIST,
+    \href{http://dftt.sourceforge.net/}{http://dftt.sourceforge.net/}
 
 \end{thebibliography}
 
