@@ -15,13 +15,14 @@ and Computer Forensics at UCD (University College Dublin), in March 2016.
 
 ## Install the requirements
 
+* Python 3
 * The Sleuth kit (instal it the way you prefer, e.g. with `brew` on OS X)
 * Several python modules, listed in requirements.txt. Install them with `pip install -r requirements.txt`
 
 ## Then install ForeWork
 
 ```bash
-python setup.py install
+python3 setup.py install
 ```
 
 # Running tests
